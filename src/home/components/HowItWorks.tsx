@@ -1,10 +1,5 @@
 import SectionTitle from "./SectionTitle";
-import {
-  AwardIcon,
-  LocationPinIcon,
-  PackageIcon,
-  SearchIcon,
-} from "./icons";
+import { AwardIcon, LocationPinIcon, PackageIcon, SearchIcon } from "./icons";
 
 const steps = [
   {
@@ -16,7 +11,7 @@ const steps = [
   {
     number: "2",
     title: "We compare",
-    description: "Dutt checks multiple delivery services in real time.",
+    description: "Doot checks multiple delivery services in real time.",
     Icon: SearchIcon,
   },
   {
@@ -28,9 +23,8 @@ const steps = [
   },
   {
     number: "4",
-    title: "We book & track",
-    description:
-      "Your delivery is booked automatically and you can track it live.",
+    title: "You approve & track",
+    description: "Book when you're ready, then track your delivery live in one place.",
     Icon: PackageIcon,
   },
 ];
@@ -61,12 +55,9 @@ function StepConnector() {
 
 export default function HowItWorks() {
   return (
-    <section
-      id="how-it-works"
-      className="bg-background py-10 md:py-14"
-    >
+    <section id="how-it-works" className="bg-background py-10 md:py-14">
       <div className="site-content">
-        <SectionTitle before="How " highlight="Dutt" after=" works" />
+        <SectionTitle before="How " highlight="Doot" after=" works" />
 
         <div className="mt-10 grid gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {steps.map((step, index) => (

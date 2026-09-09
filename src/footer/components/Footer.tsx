@@ -55,9 +55,9 @@ export default function Footer() {
               <Logo className="text-2xl" />
             </Link>
             <p className="max-w-xs text-small leading-relaxed text-muted-foreground">
-              Smart delivery orchestration
+              Best delivery options with transparent pricing —
               <br />
-              that finds the best way
+              we find the right way
               <br />
               to get your items delivered.
             </p>
@@ -77,9 +77,7 @@ export default function Footer() {
 
           {Object.entries(footerLinks).map(([group, links]) => (
             <div key={group}>
-              <h3 className="mb-4 text-body font-semibold text-foreground">
-                {group}
-              </h3>
+              <h3 className="mb-4 text-body font-semibold text-foreground">{group}</h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
@@ -95,7 +93,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-border/60 pt-8 text-center">
           <p className="text-caption text-muted-foreground">
-            &copy; 2026 Dutt. All rights reserved.
+            &copy; 2026 Doot. All rights reserved.
           </p>
         </div>
       </div>

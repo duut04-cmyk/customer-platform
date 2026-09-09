@@ -4,8 +4,7 @@ import { ClockCheckIcon, PriceTagIcon, ShieldCheckIcon } from "./icons";
 const benefits = [
   {
     title: "Better Prices",
-    description:
-      "We find cost-effective options so you save more on every delivery.",
+    description: "We find cost-effective options so you save more on every delivery.",
     Icon: PriceTagIcon,
   },
   {
@@ -17,19 +16,16 @@ const benefits = [
   {
     title: "Zero Decision Fatigue",
     description:
-      "No more comparing, calling, or guessing. Dutt handles it all for you.",
+      "No more comparing, calling, or guessing. Doot handles it all for you.",
     Icon: ShieldCheckIcon,
   },
 ];
 
 export default function WhyDutt() {
   return (
-    <section
-      id="for-businesses"
-      className="bg-background py-10 md:py-14"
-    >
+    <section id="for-businesses" className="bg-background py-10 md:py-14">
       <div className="site-content">
-        <SectionTitle before="Why choose " highlight="Dutt" after="?" />
+        <SectionTitle before="Why choose " highlight="Doot" after="?" />
 
         <div className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
           {benefits.map((benefit) => (

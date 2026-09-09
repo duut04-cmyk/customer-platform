@@ -11,12 +11,14 @@ type AuthModalProps = {
   mode: AuthMode | null;
   onClose: () => void;
   onSwitchMode: (mode: AuthMode) => void;
+  redirectTo?: string;
 };
 
 export default function AuthModal({
   mode,
   onClose,
   onSwitchMode,
+  redirectTo = "/dashboard",
 }: AuthModalProps) {
   return (
     <Modal
@@ -48,10 +50,16 @@ export default function AuthModal({
         </div>
 
         {mode === "login" && (
-          <LoginForm onSwitchToSignup={() => onSwitchMode("signup")} />
+          <LoginForm
+            onSwitchToSignup={() => onSwitchMode("signup")}
+            redirectTo={redirectTo}
+          />
         )}
         {mode === "signup" && (
-          <SignupForm onSwitchToLogin={() => onSwitchMode("login")} />
+          <SignupForm
+            onSwitchToLogin={() => onSwitchMode("login")}
+            redirectTo={redirectTo}
+          />
         )}
       </div>
     </Modal>

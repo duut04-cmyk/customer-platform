@@ -51,7 +51,7 @@ export default function CTA({ onCreateDelivery }: { onCreateDelivery?: () => voi
               Ready to <span className="text-accent">send something</span>?
             </h2>
             <p className="mt-2 text-body-lg text-white/65">
-              Let Dutt figure out the rest.
+              Let Doot figure out the rest.
             </p>
           </div>
 

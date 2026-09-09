@@ -10,13 +10,7 @@ import Input from "@/common/components/Input";
 import Logo from "@/common/components/Logo";
 import Modal from "@/common/components/Modal";
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
       <h2 className="text-subheading font-medium">{title}</h2>
@@ -44,7 +38,7 @@ export default function DesignSystemPage() {
           <p className="text-caption font-medium uppercase tracking-wider text-muted-foreground">
             Development only
           </p>
-          <h1 className="text-heading font-semibold">Dutt Design System</h1>
+          <h1 className="text-heading font-semibold">Doot Design System</h1>
         </div>
 
         <Section title="Logo">
@@ -64,8 +58,12 @@ export default function DesignSystemPage() {
             <p className="text-subheading font-medium">Subheading</p>
             <p className="text-body-lg">Body large — comfortable reading size.</p>
             <p className="text-body">Body — default paragraph text.</p>
-            <p className="text-small text-muted-foreground">Small — secondary information.</p>
-            <p className="text-caption text-muted-foreground">Caption — labels and metadata.</p>
+            <p className="text-small text-muted-foreground">
+              Small — secondary information.
+            </p>
+            <p className="text-caption text-muted-foreground">
+              Caption — labels and metadata.
+            </p>
           </div>
         </Section>
 

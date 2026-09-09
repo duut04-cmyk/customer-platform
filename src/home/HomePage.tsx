@@ -19,7 +19,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Header onLogin={openLogin} onGetStarted={openSignup} />
+      <Header onLogin={openLogin} />
       <main>
         <Hero onCreateDelivery={openSignup} />
         <HowItWorks />
@@ -28,11 +28,7 @@ export default function HomePage() {
         <CTA onCreateDelivery={openSignup} />
       </main>
       <Footer />
-      <AuthModal
-        mode={authMode}
-        onClose={closeAuth}
-        onSwitchMode={setAuthMode}
-      />
+      <AuthModal mode={authMode} onClose={closeAuth} onSwitchMode={setAuthMode} />
     </>
   );
 }

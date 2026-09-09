@@ -12,6 +12,7 @@ import PasswordInput from "./PasswordInput";
 
 type LoginFormProps = {
   onSwitchToSignup: () => void;
+  redirectTo?: string;
 };
 
 type FieldErrors = {
@@ -19,7 +20,10 @@ type FieldErrors = {
   password?: string;
 };
 
-export default function LoginForm({ onSwitchToSignup }: LoginFormProps) {
+export default function LoginForm({
+  onSwitchToSignup,
+  redirectTo = "/dashboard",
+}: LoginFormProps) {
   const router = useRouter();
   const emailId = useId();
   const passwordId = useId();
@@ -43,7 +47,7 @@ export default function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 
     setLoading(true);
     try {
-      await mockNavigateToDashboard(router, 500);
+      await mockNavigateToDashboard(router, redirectTo);
     } finally {
       setLoading(false);
     }
@@ -60,7 +64,7 @@ export default function LoginForm({ onSwitchToSignup }: LoginFormProps) {
         </p>
       </div>
 
-      <GoogleButton disabled={loading} />
+      <GoogleButton disabled={loading} redirectTo={redirectTo} />
 
       <AuthDivider />
 

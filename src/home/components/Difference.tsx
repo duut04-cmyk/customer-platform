@@ -11,11 +11,11 @@ const traditionalItems = [
   "Track across different apps",
 ];
 
-const duttItems = [
+const dootItems = [
   "Tell us what you need",
   "We compare in real time",
-  "We choose the best option",
-  "We book it for you",
+  "We recommend the best option",
+  "You review price and book",
   "Track everything in one place",
 ];
 
@@ -45,9 +45,7 @@ function ComparisonCard({
       <div className="relative z-10 pb-6 md:max-w-[42%] md:pr-8 md:pb-8">
         <h3 className="text-xl font-bold text-foreground md:text-2xl">
           {title}
-          {titleHighlight && (
-            <span className="text-accent">{titleHighlight}</span>
-          )}
+          {titleHighlight && <span className="text-accent">{titleHighlight}</span>}
           {isDutt ? " way" : ""}
         </h3>
 
@@ -84,7 +82,7 @@ export default function Difference() {
   return (
     <section className="bg-background py-10 md:py-14">
       <div className="site-content">
-        <SectionTitle before="The " highlight="Dutt" after=" difference" />
+        <SectionTitle before="The " highlight="Doot" after=" difference" />
 
         <div className="mt-10 grid gap-5 lg:grid-cols-2 lg:gap-6">
           <ComparisonCard
@@ -96,11 +94,11 @@ export default function Difference() {
           />
           <ComparisonCard
             title="The "
-            titleHighlight="Dutt"
-            items={duttItems}
+            titleHighlight="Doot"
+            items={dootItems}
             variant="dutt"
             imageSrc="/pages/dutt_way.png"
-            imageAlt="Person confidently using Dutt on their phone"
+            imageAlt="Person confidently using Doot on their phone"
           />
         </div>
       </div>

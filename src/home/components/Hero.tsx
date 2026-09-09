@@ -10,19 +10,19 @@ const secondaryLinkClassName =
 const trustedAvatars = [
   {
     src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
-    alt: "Dutt customer portrait",
+    alt: "Doot customer portrait",
   },
   {
     src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
-    alt: "Dutt customer portrait",
+    alt: "Doot customer portrait",
   },
   {
     src: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
-    alt: "Dutt customer portrait",
+    alt: "Doot customer portrait",
   },
   {
     src: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
-    alt: "Dutt customer portrait",
+    alt: "Doot customer portrait",
   },
 ];
 
@@ -33,7 +33,7 @@ export default function Hero({ onCreateDelivery }: { onCreateDelivery?: () => vo
         <div className="max-w-xl space-y-8 lg:w-[46%] lg:max-w-none lg:shrink-0 lg:py-20 xl:w-[44%]">
           <div className="space-y-6">
             <p className="text-caption font-bold uppercase tracking-[0.22em] text-accent">
-              Smart delivery orchestration
+              Delivery made simple
             </p>
             <h1 className="text-[2.25rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-heading-md md:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.75rem]">
               Your delivery.
@@ -41,9 +41,8 @@ export default function Hero({ onCreateDelivery }: { onCreateDelivery?: () => vo
               We find the <span className="text-accent">best</span> way there.
             </h1>
             <p className="max-w-lg text-body-lg font-medium leading-relaxed text-foreground/70">
-              Dutt compares multiple delivery services in real time, selects
-              the best option for your package, and books it for you. All you
-              do is track.
+              Doot compares multiple delivery services in real time, recommends the best
+              option with transparent pricing, and books only after you approve.
             </p>
           </div>
 
@@ -88,9 +87,7 @@ export default function Hero({ onCreateDelivery }: { onCreateDelivery?: () => vo
                     <StarIcon key={index} className="h-4 w-4" />
                   ))}
                 </div>
-                <span className="text-small font-bold text-foreground">
-                  4.8/5
-                </span>
+                <span className="text-small font-bold text-foreground">4.8/5</span>
                 <span className="text-small font-medium text-foreground/60">
                   from 1,200+ users
                 </span>
@@ -103,7 +100,7 @@ export default function Hero({ onCreateDelivery }: { onCreateDelivery?: () => vo
       <div className="relative mx-auto mt-10 aspect-[4/3] w-full max-w-lg sm:aspect-[16/11] lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:max-w-none lg:w-[56%] xl:w-[54%]">
         <Image
           src="/pages/hero_section.png"
-          alt="Dutt compares delivery services in real time and books the best option for your package"
+          alt="Doot compares delivery services and shows transparent pricing before you book"
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 56vw"

@@ -10,14 +10,19 @@ type DashboardRouter = {
 
 export async function mockNavigateToDashboard(
   router: DashboardRouter,
+  redirectTo = "/dashboard",
   ms = 500,
 ) {
   await delay(ms);
-  router.push("/dashboard");
+  router.push(redirectTo);
 }
 
-export async function mockGoogleAuth(router: DashboardRouter, ms = 550) {
+export async function mockGoogleAuth(
+  router: DashboardRouter,
+  redirectTo = "/dashboard",
+  ms = 550,
+) {
   const duration = ms + Math.floor(Math.random() * 150);
   await delay(duration);
-  router.push("/dashboard");
+  router.push(redirectTo);
 }

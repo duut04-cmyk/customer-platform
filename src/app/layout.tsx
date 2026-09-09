@@ -9,8 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Dutt",
-  description: "Dutt finds and books the best delivery option for you.",
+  title: "Doot",
+  description:
+    "Doot finds the best delivery option, shows transparent pricing, and books after you approve.",
 };
 
 export default function RootLayout({

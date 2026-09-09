@@ -19,7 +19,11 @@ function UserChevron({ open }: { open: boolean }) {
   );
 }
 
-export default function UserMenu() {
+type UserMenuProps = {
+  compact?: boolean;
+};
+
+export default function UserMenu({ compact = false }: UserMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,7 +59,7 @@ export default function UserMenu() {
     <div className="relative" ref={menuRef}>
       <button
         type="button"
-        className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-[10px] px-3 py-2 transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
+        className={`inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-[10px] transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 ${compact ? "px-1.5 py-1.5" : "px-3 py-2"}`}
         aria-label="Open account menu"
         aria-expanded={open}
         aria-haspopup="menu"
@@ -68,11 +72,13 @@ export default function UserMenu() {
           >
             JD
           </span>
-          <span className="hidden max-w-[7rem] truncate text-small font-medium text-foreground sm:inline sm:max-w-none sm:overflow-visible sm:whitespace-nowrap">
-            John Doe
-          </span>
+          {!compact && (
+            <span className="hidden max-w-[7rem] truncate text-small font-medium text-foreground sm:inline sm:max-w-none sm:overflow-visible sm:whitespace-nowrap">
+              John Doe
+            </span>
+          )}
         </span>
-        <UserChevron open={open} />
+        {!compact && <UserChevron open={open} />}
       </button>
 
       {open && (
@@ -82,9 +88,7 @@ export default function UserMenu() {
         >
           <div className="border-b border-border px-3 py-3">
             <p className="text-body font-semibold text-foreground">John Doe</p>
-            <p className="mt-0.5 text-small text-muted-foreground">
-              john@example.com
-            </p>
+            <p className="mt-0.5 text-small text-muted-foreground">john@example.com</p>
           </div>
           <div className="py-1">
             <button

@@ -13,6 +13,7 @@ import PasswordInput from "./PasswordInput";
 
 type SignupFormProps = {
   onSwitchToLogin: () => void;
+  redirectTo?: string;
 };
 
 type FieldErrors = {
@@ -23,7 +24,10 @@ type FieldErrors = {
   terms?: string;
 };
 
-export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
+export default function SignupForm({
+  onSwitchToLogin,
+  redirectTo = "/dashboard",
+}: SignupFormProps) {
   const router = useRouter();
   const nameId = useId();
   const emailId = useId();
@@ -56,7 +60,7 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
 
     setLoading(true);
     try {
-      await mockNavigateToDashboard(router, 500);
+      await mockNavigateToDashboard(router, redirectTo);
     } finally {
       setLoading(false);
     }
@@ -73,7 +77,7 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         </p>
       </div>
 
-      <GoogleButton disabled={loading} />
+      <GoogleButton disabled={loading} redirectTo={redirectTo} />
 
       <AuthDivider />
 
@@ -166,17 +170,12 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         </div>
 
         <div>
-          <p className="mb-1.5 text-small font-medium text-foreground">
-            CAPTCHA
-          </p>
+          <p className="mb-1.5 text-small font-medium text-foreground">CAPTCHA</p>
           <CaptchaPlaceholder />
         </div>
 
         <div>
-          <label
-            htmlFor={termsId}
-            className="flex cursor-pointer items-start gap-2.5"
-          >
+          <label htmlFor={termsId} className="flex cursor-pointer items-start gap-2.5">
             <input
               id={termsId}
               name="terms"
@@ -184,7 +183,7 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
               className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
             />
             <span className="text-small leading-snug text-muted-foreground">
-              I agree to Dutt&apos;s{" "}
+              I agree to Doot&apos;s{" "}
               <a
                 href="#"
                 className="font-medium text-foreground underline-offset-2 hover:underline"

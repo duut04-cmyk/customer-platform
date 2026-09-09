@@ -17,7 +17,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 };
 
 const baseClasses =
-  "inline-flex cursor-pointer items-center justify-center h-11 px-5 text-small font-medium rounded-pill transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex cursor-pointer items-center justify-center h-11 px-5 text-small font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
 
 export default function Button({
   children,
@@ -26,10 +26,13 @@ export default function Button({
   variant = "primary",
   ...props
 }: ButtonProps) {
+  const hasCustomRadius = /\b!?rounded(?:-|\[)/.test(className);
+  const radiusClass = hasCustomRadius ? "" : "rounded-pill";
+
   return (
     <button
       type={type}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${radiusClass} ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

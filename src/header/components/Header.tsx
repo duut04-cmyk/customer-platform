@@ -17,10 +17,9 @@ const linkClassName =
 
 type HeaderProps = {
   onLogin?: () => void;
-  onGetStarted?: () => void;
 };
 
-export default function Header({ onLogin, onGetStarted }: HeaderProps) {
+export default function Header({ onLogin }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -48,11 +47,6 @@ export default function Header({ onLogin, onGetStarted }: HeaderProps) {
     onLogin?.();
   };
 
-  const handleGetStarted = () => {
-    closeMenu();
-    onGetStarted?.();
-  };
-
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="site-content relative flex h-20 items-center">
@@ -75,19 +69,22 @@ export default function Header({ onLogin, onGetStarted }: HeaderProps) {
         </nav>
 
         <div className="ml-auto hidden items-center gap-8 lg:flex">
-          <button
-            type="button"
-            onClick={onLogin}
-            className={`${linkClassName} cursor-pointer`}
-          >
-            Login
-          </button>
-          <Button
-            className="h-12 px-7 text-body"
-            onClick={onGetStarted}
-          >
-            Get started
-          </Button>
+          {onLogin ? (
+            <button
+              type="button"
+              onClick={onLogin}
+              className={`${linkClassName} cursor-pointer`}
+            >
+              Login
+            </button>
+          ) : (
+            <Link href="/get-started?mode=login" className={linkClassName}>
+              Login
+            </Link>
+          )}
+          <Link href="/get-started">
+            <Button className="h-12 px-7 text-body">Get started</Button>
+          </Link>
         </div>
 
         <button
@@ -129,17 +126,27 @@ export default function Header({ onLogin, onGetStarted }: HeaderProps) {
                 {link.label}
               </a>
             ))}
-            <button
-              type="button"
-              className={`${linkClassName} cursor-pointer rounded-md px-3 py-3 text-left hover:bg-surface`}
-              onClick={handleLogin}
-            >
-              Login
-            </button>
+            {onLogin ? (
+              <button
+                type="button"
+                className={`${linkClassName} cursor-pointer rounded-md px-3 py-3 text-left hover:bg-surface`}
+                onClick={handleLogin}
+              >
+                Login
+              </button>
+            ) : (
+              <Link
+                href="/get-started?mode=login"
+                className={`${linkClassName} rounded-md px-3 py-3 hover:bg-surface`}
+                onClick={closeMenu}
+              >
+                Login
+              </Link>
+            )}
             <div className="pt-2">
-              <Button className="w-full" onClick={handleGetStarted}>
-                Get started
-              </Button>
+              <Link href="/get-started" onClick={closeMenu}>
+                <Button className="w-full">Get started</Button>
+              </Link>
             </div>
           </div>
         </nav>
