@@ -1,88 +1,92 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { DeliveryFormData, DeliveryRecommendation } from "../types";
+import BookingProgressStepper from "./BookingProgressStepper";
+import BookingServiceSummaryCard from "./BookingServiceSummaryCard";
+import BookingStatusBanners from "./BookingStatusBanners";
+import BookingWhatHappensNextCard from "./BookingWhatHappensNextCard";
+import ConfirmedDeliverySummaryCard from "./ConfirmedDeliverySummaryCard";
 
 type BookingDeliveryProps = {
+  recommendation: DeliveryRecommendation;
+  formData: DeliveryFormData;
   onComplete: () => void;
 };
 
-const bookingSteps = [
-  "Delivery option selected",
-  "Price confirmed",
-  "Booking delivery service",
-  "Confirming delivery partner",
-];
+export function BookingDeliveryHeader() {
+  return (
+    <div className="space-y-2">
+      <h2 className="text-heading font-bold tracking-tight text-foreground md:text-heading-md">
+        Booking your delivery
+      </h2>
+      <p className="text-body text-muted-foreground">
+        Your selected delivery option is being booked.
+      </p>
+    </div>
+  );
+}
 
-export default function BookingDelivery({ onComplete }: BookingDeliveryProps) {
-  const [completedCount, setCompletedCount] = useState(0);
+export default function BookingDelivery({
+  recommendation,
+  formData,
+  onComplete,
+}: BookingDeliveryProps) {
+  const [activeIndex, setActiveIndex] = useState(2);
+
+  const handleComplete = useCallback(() => {
+    onComplete();
+  }, [onComplete]);
 
   useEffect(() => {
     const timers: number[] = [];
 
-    bookingSteps.forEach((_, index) => {
-      timers.push(
-        window.setTimeout(
-          () => {
-            setCompletedCount(index + 1);
-          },
-          550 * (index + 1),
-        ),
-      );
-    });
+    timers.push(
+      window.setTimeout(() => {
+        setActiveIndex(3);
+      }, 900),
+    );
 
     timers.push(
       window.setTimeout(() => {
-        onComplete();
+        handleComplete();
       }, 2600),
     );
 
     return () => timers.forEach((id) => window.clearTimeout(id));
-  }, [onComplete]);
+  }, [handleComplete]);
 
   return (
-    <div className="mx-auto mt-10 max-w-lg space-y-8 text-center">
-      <div className="space-y-2">
-        <h2 className="text-heading font-bold tracking-tight text-foreground md:text-heading-md">
-          Booking your delivery
-        </h2>
-        <p className="text-body text-muted-foreground">
-          Your selected delivery option is being booked.
-        </p>
+    <div className="space-y-5">
+      <BookingServiceSummaryCard recommendation={recommendation} formData={formData} />
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <section
+          className="overflow-hidden rounded-xl border border-border bg-background shadow-sm"
+          aria-label="Booking progress"
+        >
+          <div className="space-y-5 p-5 md:p-6">
+            <p className="text-body font-semibold text-foreground">Booking progress</p>
+
+            <div className="overflow-x-auto pb-1">
+              <BookingProgressStepper activeIndex={activeIndex} />
+            </div>
+
+            <BookingStatusBanners
+              serviceName={recommendation.serviceName}
+              showAlmostThere={activeIndex >= 2}
+            />
+          </div>
+        </section>
+
+        <aside className="flex flex-col gap-4">
+          <ConfirmedDeliverySummaryCard
+            data={formData}
+            serviceName={recommendation.serviceName}
+          />
+          <BookingWhatHappensNextCard />
+        </aside>
       </div>
-
-      <ul
-        className="space-y-3 text-left"
-        aria-live="polite"
-        aria-label="Booking your delivery"
-      >
-        {bookingSteps.map((step, index) => {
-          const done = completedCount > index;
-          const inProgress = !done && completedCount === index;
-
-          return (
-            <li
-              key={step}
-              className={`flex items-center gap-3 text-body transition-opacity ${
-                done || inProgress ? "text-foreground" : "text-muted-foreground"
-              }`}
-            >
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-caption font-bold ${
-                  done
-                    ? "bg-accent text-accent-foreground"
-                    : inProgress
-                      ? "border-2 border-accent bg-background text-accent"
-                      : "bg-surface text-muted-foreground"
-                }`}
-                aria-hidden="true"
-              >
-                {done ? "✓" : inProgress ? "•" : "○"}
-              </span>
-              {step}
-            </li>
-          );
-        })}
-      </ul>
     </div>
   );
 }

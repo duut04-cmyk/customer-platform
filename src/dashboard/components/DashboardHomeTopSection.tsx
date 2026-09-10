@@ -47,30 +47,24 @@ export default function DashboardHomeTopSection() {
 
   return (
     <div className="bg-white">
-      {/* Desktop: greeting top-left, search across same row, actions right */}
-      <div className="hidden lg:grid lg:grid-cols-[minmax(0,max-content)_minmax(0,1fr)_auto] lg:items-start lg:gap-x-5 lg:gap-y-3">
-        <div className="col-start-1 row-start-1 row-span-2 min-w-[220px]">
+      {/* Desktop: greeting + actions on top row, search below greeting */}
+      <div className="hidden space-y-4 lg:block">
+        <div className="flex items-start justify-between gap-4">
           <GreetingBlock />
+          <div className="flex shrink-0 items-center gap-2">
+            <NotificationBell />
+            <UserMenu />
+            <CreateDeliveryButton />
+          </div>
         </div>
 
-        <div className="col-start-2 row-start-1 flex w-full justify-center self-center pt-0.5">
-          <Suspense
-            fallback={
-              <div className="h-10 w-full max-w-md rounded-[4px] border border-border bg-white" />
-            }
-          >
-            <DashboardSearch variant="wide" />
-          </Suspense>
-        </div>
-
-        <div className="col-start-3 row-start-1 flex shrink-0 items-center justify-end gap-2 self-center">
-          <NotificationBell />
-          <UserMenu />
-        </div>
-
-        <div className="col-start-3 row-start-2 flex justify-end">
-          <CreateDeliveryButton />
-        </div>
+        <Suspense
+          fallback={
+            <div className="h-10 w-full max-w-xl rounded-[4px] border border-border bg-white" />
+          }
+        >
+          <DashboardSearch variant="wide" className="max-w-xl" />
+        </Suspense>
       </div>
 
       {/* Mobile */}

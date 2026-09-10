@@ -44,6 +44,17 @@ export type DeliveryFormData = {
   consentAcceptedAt: string;
 };
 
+export type RecommendedDriver = {
+  name: string;
+  initials: string;
+  photoUrl: string;
+  rating: number;
+  deliveryCount: number;
+  phone: string;
+  vehicleType: string;
+  vehicleNumber: string;
+};
+
 export type DeliveryRecommendation = {
   serviceId: string;
   serviceName: string;
@@ -54,6 +65,13 @@ export type DeliveryRecommendation = {
   estimatedDuration: string;
   packageCompatible: boolean;
   pricing: DeliveryPricing;
+  tagline: string;
+  serviceType: string;
+  verified: boolean;
+  pickupAvailability: string;
+  driver: RecommendedDriver;
+  pickupTime: string;
+  deliveryEta: string;
 };
 
 export type BookingResult = {

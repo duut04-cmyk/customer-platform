@@ -4,13 +4,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import DashboardInPageTopSection from "@/dashboard/components/DashboardInPageTopSection";
 import SafetyComplianceCard from "@/dashboard/components/SafetyComplianceCard";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
-import BestDeliveryOption from "./components/BestDeliveryOption";
-import BookingDelivery from "./components/BookingDelivery";
+import BestDeliveryOption, {
+  BestDeliveryOptionHeader,
+} from "./components/BestDeliveryOption";
+import BackToDeliveryOptionLink from "./components/BackToDeliveryOptionLink";
+import BookingDelivery, { BookingDeliveryHeader } from "./components/BookingDelivery";
 import ConsentStep, { validateConsentStep } from "./components/ConsentStep";
+import CreateDeliveryBackLink from "./components/CreateDeliveryBackLink";
 import CreateDeliveryHeader from "./components/CreateDeliveryHeader";
-import DeliveryConfirmed from "./components/DeliveryConfirmed";
+import DeliveryConfirmed, {
+  DeliveryConfirmedHeader,
+} from "./components/DeliveryConfirmed";
 import DeliveryProgress from "./components/DeliveryProgress";
 import FindingDelivery from "./components/FindingDelivery";
+import FindingDeliverySummaryCard from "./components/FindingDeliverySummaryCard";
+import FindingTimeSlotCard from "./components/FindingTimeSlotCard";
 import { getMockDeliveryRecommendation } from "./mockOrchestrationResult";
 import PackageStep, { validatePackageStep } from "./components/PackageStep";
 import PickupDropStep, { validatePickupStep } from "./components/PickupDropStep";
@@ -156,6 +164,10 @@ export default function CreateDelivery() {
     setStep("review");
   };
 
+  const handleBackToBestOption = () => {
+    setStep("best_option");
+  };
+
   const handleEditStep = (nextStep: FormStep, focus?: "pickup" | "dropoff") => {
     setPickupFocus(focus ?? null);
     setStep(nextStep);
@@ -277,17 +289,61 @@ export default function CreateDelivery() {
           </>
         )}
 
-        {step === "finding" && <FindingDelivery onComplete={handleFindingComplete} />}
-        {step === "best_option" && recommendation && (
-          <BestDeliveryOption
-            recommendation={recommendation}
-            onBook={handleBookDelivery}
-            onBack={handleBackToReview}
-          />
+        {step === "finding" && (
+          <div className="space-y-5">
+            <CreateDeliveryBackLink />
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+              <FindingDelivery
+                data={data}
+                onComplete={handleFindingComplete}
+                onEdit={handleEditStep}
+              />
+              <aside className="flex flex-col gap-4">
+                <FindingTimeSlotCard data={data} />
+                <FindingDeliverySummaryCard data={data} />
+                <SafetyComplianceCard variant="create" />
+              </aside>
+            </div>
+          </div>
         )}
-        {step === "booking" && <BookingDelivery onComplete={handleBookingComplete} />}
+
+        {step === "best_option" && recommendation && (
+          <div className="space-y-5">
+            <CreateDeliveryBackLink />
+            <BestDeliveryOptionHeader />
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+              <BestDeliveryOption
+                recommendation={recommendation}
+                formData={data}
+                onBook={handleBookDelivery}
+                onBack={handleBackToReview}
+              />
+              <aside className="flex flex-col gap-4">
+                <YourDeliverySummaryCard data={data} currentStep="review" />
+                <SafetyComplianceCard variant="create" />
+              </aside>
+            </div>
+          </div>
+        )}
+        {step === "booking" && recommendation && (
+          <div className="space-y-5">
+            <BackToDeliveryOptionLink onClick={handleBackToBestOption} />
+            <BookingDeliveryHeader />
+            <BookingDelivery
+              recommendation={recommendation}
+              formData={data}
+              onComplete={handleBookingComplete}
+            />
+          </div>
+        )}
         {step === "confirmed" && booking && (
-          <DeliveryConfirmed booking={booking} formData={data} />
+          <div className="space-y-5">
+            <CreateDeliveryBackLink />
+            <DeliveryConfirmedHeader />
+            <DeliveryConfirmed booking={booking} formData={data} />
+          </div>
         )}
       </div>
     </main>
