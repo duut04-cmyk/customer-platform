@@ -11,6 +11,7 @@ type PricingBreakdownProps = {
   showNote?: boolean;
   heading?: string;
   embedded?: boolean;
+  variant?: "default" | "order-summary";
 };
 
 function PricingLine({
@@ -57,7 +58,11 @@ export default function PricingBreakdown({
   showNote = false,
   heading = "Price breakdown",
   embedded = false,
+  variant = "default",
 }: PricingBreakdownProps) {
+  const isOrderSummary = variant === "order-summary";
+  const resolvedHeading = isOrderSummary ? heading || "Order summary" : heading;
+
   const content = (
     <>
       {!embedded && (
@@ -65,14 +70,18 @@ export default function PricingBreakdown({
           id="delivery-pricing-heading"
           className="text-body-lg font-bold text-foreground"
         >
-          {heading}
+          {resolvedHeading}
         </h3>
       )}
 
-      {embedded && (
+      {embedded && !isOrderSummary && (
         <h3 className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-          {heading}
+          {resolvedHeading}
         </h3>
+      )}
+
+      {embedded && isOrderSummary && (
+        <h3 className="text-body font-semibold text-foreground">{resolvedHeading}</h3>
       )}
 
       <dl
@@ -85,18 +94,30 @@ export default function PricingBreakdown({
           value={formatInr(pricing.thirdPartyCharge)}
         />
         <PricingLine
-          label="Doot platform fee"
-          helper={`${DOOT_PLATFORM_FEE_PERCENT}% platform fee`}
+          label={
+            isOrderSummary
+              ? `Platform fee (${DOOT_PLATFORM_FEE_PERCENT}%)`
+              : "Doot platform fee"
+          }
+          helper={
+            isOrderSummary ? undefined : `${DOOT_PLATFORM_FEE_PERCENT}% platform fee`
+          }
           value={formatInr(pricing.platformFeeAmount)}
         />
         <PricingLine
           label="GST"
-          helper={`${GST_PERCENT}% GST`}
+          helper={isOrderSummary ? undefined : `${GST_PERCENT}% GST`}
           value={formatInr(pricing.gstAmount)}
         />
-        <div className="border-t border-border pt-4">
-          <PricingLine label="Total" value={formatInr(pricing.total)} bold />
-        </div>
+        {isOrderSummary ? (
+          <div className="rounded-lg bg-blue-50 px-4 py-3">
+            <PricingLine label="Total" value={formatInr(pricing.total)} bold />
+          </div>
+        ) : (
+          <div className="border-t border-border pt-4">
+            <PricingLine label="Total" value={formatInr(pricing.total)} bold />
+          </div>
+        )}
       </dl>
 
       {showNote && (
