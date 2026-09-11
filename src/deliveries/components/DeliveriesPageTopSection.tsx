@@ -1,1 +1,63 @@
-export { default } from "@/dashboard/components/DashboardInPageTopSection";
+"use client";
+
+import { Suspense } from "react";
+import DashboardSearch from "@/dashboard/components/DashboardSearch";
+import { useDashboardShell } from "@/dashboard/components/DashboardShellContext";
+import { IconMenu } from "@/dashboard/components/icons";
+import NotificationBell from "@/dashboard/components/NotificationBell";
+import UserMenu from "@/dashboard/components/UserMenu";
+import DeliveriesHeader from "./DeliveriesHeader";
+
+export default function DeliveriesPageTopSection() {
+  const { openMobileNav } = useDashboardShell();
+
+  return (
+    <div className="bg-white">
+      {/* Desktop: title + actions on top row, search below title */}
+      <div className="hidden space-y-4 lg:block">
+        <div className="flex items-start justify-between gap-4">
+          <DeliveriesHeader />
+          <div className="flex shrink-0 items-center gap-2">
+            <NotificationBell />
+            <UserMenu />
+          </div>
+        </div>
+
+        <Suspense
+          fallback={
+            <div className="h-10 w-full max-w-xl rounded-[6px] border border-border bg-white" />
+          }
+        >
+          <DashboardSearch variant="wide" className="max-w-xl" />
+        </Suspense>
+      </div>
+
+      {/* Mobile */}
+      <div className="space-y-3 lg:hidden">
+        <DeliveriesHeader />
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="rounded-[4px] p-2 text-muted-foreground hover:bg-surface hover:text-foreground"
+            aria-label="Open navigation menu"
+            onClick={openMobileNav}
+          >
+            <IconMenu />
+          </button>
+
+          <Suspense
+            fallback={
+              <div className="h-9 min-w-0 flex-1 rounded-[6px] border border-border bg-white" />
+            }
+          >
+            <DashboardSearch variant="flex" />
+          </Suspense>
+
+          <NotificationBell />
+          <UserMenu compact />
+        </div>
+      </div>
+    </div>
+  );
+}

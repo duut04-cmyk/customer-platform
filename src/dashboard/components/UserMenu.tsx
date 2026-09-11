@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { ACCOUNT_SETTINGS_PATH } from "@/account/paths";
 import Button from "@/common/components/Button";
+import { HELP_SUPPORT_PATH } from "@/help/paths";
 
 function UserChevron({ open }: { open: boolean }) {
   return (
@@ -25,6 +27,7 @@ type UserMenuProps = {
 
 export default function UserMenu({ compact = false }: UserMenuProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -94,16 +97,30 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
             <button
               type="button"
               role="menuitem"
-              className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-small font-medium text-foreground transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
-              onClick={() => setOpen(false)}
+              className={`w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-small font-medium transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 ${
+                pathname === ACCOUNT_SETTINGS_PATH
+                  ? "bg-surface text-foreground"
+                  : "text-foreground"
+              }`}
+              onClick={() => {
+                setOpen(false);
+                router.push(ACCOUNT_SETTINGS_PATH);
+              }}
             >
               Account settings
             </button>
             <button
               type="button"
               role="menuitem"
-              className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-small font-medium text-foreground transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
-              onClick={() => setOpen(false)}
+              className={`w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-small font-medium transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 ${
+                pathname === HELP_SUPPORT_PATH
+                  ? "bg-surface text-foreground"
+                  : "text-foreground"
+              }`}
+              onClick={() => {
+                setOpen(false);
+                router.push(HELP_SUPPORT_PATH);
+              }}
             >
               Help & support
             </button>

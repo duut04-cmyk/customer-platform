@@ -15,7 +15,7 @@ export default function DashboardInPageTopSection() {
       <div className="hidden items-center justify-between gap-4 lg:flex">
         <Suspense
           fallback={
-            <div className="h-10 w-full max-w-xl rounded-[4px] border border-border bg-white" />
+            <div className="h-10 w-full max-w-xl rounded-[6px] border border-border bg-white" />
           }
         >
           <DashboardSearch variant="wide" className="max-w-xl" />
@@ -39,7 +39,7 @@ export default function DashboardInPageTopSection() {
 
         <Suspense
           fallback={
-            <div className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-white" />
+            <div className="h-9 min-w-0 flex-1 rounded-[6px] border border-border bg-white" />
           }
         >
           <DashboardSearch variant="flex" />

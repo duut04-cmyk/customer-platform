@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SAFETY_COMPLIANCE_PATH } from "@/safety/paths";
 import { IconArrowRight, IconShieldFilled } from "./icons";
 
 type SafetyComplianceCardProps = {
@@ -24,8 +25,8 @@ export default function SafetyComplianceCard({
               : "All deliveries follow Indian transport and logistics regulations. You are responsible for accurate declarations, safe packaging, and compliance with prohibited-items rules."}
           </p>
           <Link
-            href="#"
-            className="mt-4 inline-flex items-center gap-1.5 text-small font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
+            href={SAFETY_COMPLIANCE_PATH}
+            className="mt-4 inline-flex cursor-pointer items-center gap-1.5 text-small font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
           >
             Learn more
             <IconArrowRight className="h-4 w-4" />

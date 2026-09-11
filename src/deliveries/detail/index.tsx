@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
 import BackButton from "@/dashboard/components/BackButton";
-import DriverInfo from "../tracking/components/DriverInfo";
-import OtpVerificationCard from "../tracking/components/OtpVerificationCard";
 import { getDeliveryById } from "../mockDeliveries";
-import DeliveryActions from "./components/DeliveryActions";
+import { buildCustomerDetailTimeline, isActiveDeliveryDetailStatus } from "../types";
 import DeliveryDetailHeader from "./components/DeliveryHeader";
-import DeliveryPackage from "./components/DeliveryPackage";
-import DeliveryPricingSummary from "./components/DeliveryPricingSummary";
-import DeliveryRoute from "./components/DeliveryRoute";
-import DeliveryStatus from "./components/DeliveryStatus";
+import DeliveryLocationsCard from "./components/DeliveryLocationsCard";
+import DeliverySummaryHeroCard from "./components/DeliverySummaryHeroCard";
 import DeliveryTimeline from "./components/DeliveryTimeline";
+import DetailDriverCard from "./components/DetailDriverCard";
+import DetailNeedHelpCard from "./components/DetailNeedHelpCard";
+import DetailSafeCompliantCard from "./components/DetailSafeCompliantCard";
+import DetailServiceInfoCard from "./components/DetailServiceInfoCard";
 
 type DeliveryDetailProps = {
   deliveryId: string;
@@ -39,20 +39,28 @@ export default function DeliveryDetail({ deliveryId }: DeliveryDetailProps) {
     );
   }
 
+  const timelineEvents = buildCustomerDetailTimeline(delivery);
+  const isActive = isActiveDeliveryDetailStatus(delivery.status);
+
   return (
-    <main className={`${DASHBOARD_MAIN} space-y-6 lg:space-y-8`}>
-      <DeliveryDetailHeader delivery={delivery} />
-      <DeliveryStatus delivery={delivery} />
-      <DeliveryRoute delivery={delivery} />
-      <OtpVerificationCard delivery={delivery} />
-      <DriverInfo delivery={delivery} />
-      <DeliveryPackage delivery={delivery} />
-      <DeliveryPricingSummary delivery={delivery} />
-      <section className="rounded-xl border border-border bg-background p-6 shadow-sm">
-        <h2 className="mb-5 text-body-lg font-bold text-foreground">Timeline</h2>
-        <DeliveryTimeline events={delivery.timeline} />
-      </section>
-      <DeliveryActions delivery={delivery} />
+    <main className={`${DASHBOARD_MAIN} bg-white`}>
+      <div className="space-y-6 lg:space-y-8">
+        <DeliveryDetailHeader delivery={delivery} />
+        <DeliverySummaryHeroCard delivery={delivery} />
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="flex flex-col gap-4">
+            {isActive && <DeliveryTimeline events={timelineEvents} />}
+            <DeliveryLocationsCard delivery={delivery} />
+          </div>
+
+          <aside className="flex flex-col gap-4">
+            <DetailDriverCard delivery={delivery} />
+            <DetailServiceInfoCard delivery={delivery} />
+            {isActive ? <DetailSafeCompliantCard /> : <DetailNeedHelpCard />}
+          </aside>
+        </div>
+      </div>
     </main>
   );
 }

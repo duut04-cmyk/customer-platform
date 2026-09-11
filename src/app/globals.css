@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-phone-number-input/style.css";
 
 :root {
   /* Brand */
@@ -32,6 +33,9 @@
   /* Container */
   --container-max: 1200px;
   --container-padding: 16px;
+
+  /* Phone input */
+  --PhoneInput-color--focus: var(--foreground);
 }
 
 @media (min-width: 768px) {
@@ -140,4 +144,23 @@ h1,
 h2,
 h3 {
   letter-spacing: -0.02em;
+}
+
+.phone-input-field {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.phone-input-field .PhoneInputCountry {
+  margin-right: 0;
+}
+
+.phone-input-field .PhoneInputCountryIcon {
+  --PhoneInputCountryFlag-height: 1rem;
+  flex-shrink: 0;
+}
+
+.phone-input-field--error .PhoneInputCountry button {
+  border-color: var(--foreground);
 }

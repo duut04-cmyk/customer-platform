@@ -1,5 +1,6 @@
 import { calculateDeliveryPricing } from "@/deliveries/pricing";
 import type { DeliveryFormData, DeliveryRecommendation, PackageType } from "./types";
+import { getEffectiveSizePreset } from "./types";
 
 const SERVICE_OPTIONS = [
   {
@@ -89,12 +90,15 @@ const CATEGORY_BASE_CHARGE: Record<Exclude<PackageType, "">, number> = {
 };
 
 function hashFormSeed(data: DeliveryFormData): number {
+  const preset = getEffectiveSizePreset(data);
+  const effectiveWeight = data.weight.trim() || (preset ? String(preset.weight) : "");
   const seed = [
     data.pickupAddress,
     data.dropAddress,
     data.packageType,
+    data.packageSizeTier,
     data.scheduledAt,
-    data.weight,
+    effectiveWeight,
   ].join("|");
 
   return seed.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);

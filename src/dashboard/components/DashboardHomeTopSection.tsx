@@ -1,32 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense } from "react";
-import Button from "@/common/components/Button";
-import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
 import DashboardSearch from "./DashboardSearch";
 import { useDashboardShell } from "./DashboardShellContext";
-import { IconChevronRight, IconMenu, IconWave } from "./icons";
+import { IconMenu, IconWave } from "./icons";
 import NotificationBell from "./NotificationBell";
 import UserMenu from "./UserMenu";
-
-const createButtonClassName = "h-10 gap-2 rounded-[10px] px-5 text-small font-semibold";
-
-function CreateDeliveryButton({
-  className = createButtonClassName,
-}: {
-  className?: string;
-}) {
-  return (
-    <Link href={CREATE_DELIVERY_PATH}>
-      <Button className={className}>
-        <span aria-hidden="true">+</span>
-        Create a delivery
-        <IconChevronRight className="h-4 w-4" />
-      </Button>
-    </Link>
-  );
-}
 
 function GreetingBlock() {
   return (
@@ -54,13 +33,12 @@ export default function DashboardHomeTopSection() {
           <div className="flex shrink-0 items-center gap-2">
             <NotificationBell />
             <UserMenu />
-            <CreateDeliveryButton />
           </div>
         </div>
 
         <Suspense
           fallback={
-            <div className="h-10 w-full max-w-xl rounded-[4px] border border-border bg-white" />
+            <div className="h-10 w-full max-w-xl rounded-[6px] border border-border bg-white" />
           }
         >
           <DashboardSearch variant="wide" className="max-w-xl" />
@@ -83,7 +61,7 @@ export default function DashboardHomeTopSection() {
 
           <Suspense
             fallback={
-              <div className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-white" />
+              <div className="h-9 min-w-0 flex-1 rounded-[6px] border border-border bg-white" />
             }
           >
             <DashboardSearch variant="flex" />
@@ -91,10 +69,6 @@ export default function DashboardHomeTopSection() {
 
           <NotificationBell />
           <UserMenu compact />
-        </div>
-
-        <div className="flex justify-end">
-          <CreateDeliveryButton className="h-9 gap-1.5 rounded-[10px] px-4 text-small font-semibold" />
         </div>
       </div>
     </div>

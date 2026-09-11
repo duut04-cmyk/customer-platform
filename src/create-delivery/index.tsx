@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import DashboardInPageTopSection from "@/dashboard/components/DashboardInPageTopSection";
+import CreateDeliveryPageTopSection from "./components/CreateDeliveryPageTopSection";
 import SafetyComplianceCard from "@/dashboard/components/SafetyComplianceCard";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
 import BestDeliveryOption, {
@@ -11,7 +11,6 @@ import BackToDeliveryOptionLink from "./components/BackToDeliveryOptionLink";
 import BookingDelivery, { BookingDeliveryHeader } from "./components/BookingDelivery";
 import ConsentStep, { validateConsentStep } from "./components/ConsentStep";
 import CreateDeliveryBackLink from "./components/CreateDeliveryBackLink";
-import CreateDeliveryHeader from "./components/CreateDeliveryHeader";
 import DeliveryConfirmed, {
   DeliveryConfirmedHeader,
 } from "./components/DeliveryConfirmed";
@@ -31,7 +30,7 @@ import YourDeliverySummaryCard from "./components/YourDeliverySummaryCard";
 import {
   hasComplianceConsent,
   initialDeliveryFormData,
-  MIN_PACKAGE_PHOTOS,
+  isPackageStepComplete,
   MOCK_DELIVERY_ID,
   type BookingResult,
   type DeliveryFormData,
@@ -193,16 +192,7 @@ export default function CreateDelivery() {
       );
     }
     if (step === "package") {
-      const photosOk = data.packagePhotoUrls.length >= MIN_PACKAGE_PHOTOS;
-      if (!data.packageType || !photosOk) return true;
-      if (
-        data.packageType !== "food" &&
-        data.packageType !== "medicine" &&
-        (!data.length.trim() || !data.width.trim() || !data.height.trim())
-      ) {
-        return true;
-      }
-      return false;
+      return !isPackageStepComplete(data);
     }
     if (step === "requirements") {
       if (!data.timing) return true;
@@ -253,12 +243,10 @@ export default function CreateDelivery() {
   return (
     <main className={`${DASHBOARD_MAIN} bg-white`}>
       <div className="space-y-4 lg:space-y-5">
-        <DashboardInPageTopSection />
+        <CreateDeliveryPageTopSection showHeader={showFormLayout} />
 
         {showFormLayout && (
-          <>
-            <CreateDeliveryHeader />
-
+          <div className="mt-6 space-y-4 lg:mt-8 lg:space-y-5">
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_1fr] lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
               {showProgress ? (
                 <div className="lg:col-start-1 lg:row-start-1">
@@ -286,7 +274,7 @@ export default function CreateDelivery() {
                 <SafetyComplianceCard variant="create" />
               </aside>
             </div>
-          </>
+          </div>
         )}
 
         {step === "finding" && (

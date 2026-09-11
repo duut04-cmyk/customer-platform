@@ -5,6 +5,7 @@ import Button from "@/common/components/Button";
 import type { DeliveryFormData, FormStep } from "../types";
 import {
   formatDimensions,
+  formatPackageSizeSummary,
   formatScheduledAt,
   formatTimingSummary,
   formatWeight,
@@ -89,6 +90,9 @@ export default function ReviewStep({ data, onEdit, onFindDelivery }: ReviewStepP
 
         <ReviewSection title="Package" onEdit={() => onEdit("package")}>
           <ReviewRow label="Category" value={packageLabel} />
+          {data.packageDescription.trim() ? (
+            <ReviewRow label="Contents" value={data.packageDescription.trim()} />
+          ) : null}
           {data.packagePhotoUrls.length > 0 && (
             <div>
               <p className="text-caption text-muted-foreground">Photos</p>
@@ -109,8 +113,9 @@ export default function ReviewStep({ data, onEdit, onFindDelivery }: ReviewStepP
               </div>
             </div>
           )}
+          <ReviewRow label="Size" value={formatPackageSizeSummary(data)} />
           <ReviewRow label="Dimensions" value={formatDimensions(data)} />
-          <ReviewRow label="Weight" value={formatWeight(data.weight)} />
+          <ReviewRow label="Weight" value={formatWeight(data)} />
         </ReviewSection>
 
         <ReviewSection
@@ -152,7 +157,7 @@ export default function ReviewStep({ data, onEdit, onFindDelivery }: ReviewStepP
         </p>
         <Button
           type="button"
-          className="mt-6 h-12 w-full px-8 text-body font-semibold sm:w-auto"
+          className="mt-6 h-12 w-full rounded-[6px] px-8 text-body font-semibold sm:w-auto"
           onClick={onFindDelivery}
           disabled={!hasComplianceConsent(data)}
         >

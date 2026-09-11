@@ -1,18 +1,30 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Input from "@/common/components/Input";
 import {
   IconCheck,
-  IconChevronDown,
   IconDocumentFilled,
   IconFoodFilled,
   IconMedicineFilled,
   IconOtherFilled,
 } from "@/dashboard/components/icons";
-import type { DeliveryFormData, PackageType } from "../types";
-import { isDimensionsOptional, MIN_PACKAGE_PHOTOS, PACKAGE_LABELS } from "../types";
+import type { DeliveryFormData, PackageSizeTier, PackageType } from "../types";
+import {
+  getDefaultPackageSizeTier,
+  getPackageDescriptionPlaceholder,
+  getPackageSizeHelperText,
+  isPackageSizeTierAllowed,
+  MAX_PACKAGE_DESCRIPTION_LENGTH,
+  PACKAGE_LABELS,
+  PACKAGE_SIZE_TIER_LABELS,
+  requiresPackageDescription,
+  requiresPackageDimensions,
+  requiresPackageWeight,
+  validatePackageFields,
+} from "../types";
 import PackagePhotoUpload from "./PackagePhotoUpload";
+import Textarea from "./Textarea";
 import WhyWeNeedPhotosPanel from "./WhyWeNeedPhotosPanel";
 
 type CategoryId = "medicine" | "food" | "document" | "other";
@@ -74,6 +86,24 @@ const packageOptions: {
   },
 ];
 
+const sizeTierOptions: {
+  id: Exclude<PackageSizeTier, "">;
+  description: string;
+}[] = [
+  {
+    id: "small",
+    description: "Fits in a bag or envelope",
+  },
+  {
+    id: "medium",
+    description: "Hand-carry box or bag",
+  },
+  {
+    id: "large",
+    description: "Heavy or bulky — exact size needed",
+  },
+];
+
 type PackageStepProps = {
   data: DeliveryFormData;
   errors: Partial<Record<keyof DeliveryFormData, string>>;
@@ -101,10 +131,27 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export default function PackageStep({ data, errors, onChange }: PackageStepProps) {
-  const dimensionsOptional = isDimensionsOptional(data.packageType);
-  const hasDimensionErrors = !!(errors.length || errors.width || errors.height);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const isDetailsExpanded = detailsOpen || hasDimensionErrors;
+  const showDimensions = requiresPackageDimensions(data);
+  const weightRequired = requiresPackageWeight(data);
+  const descriptionRequired = requiresPackageDescription(data);
+
+  function handleCategorySelect(packageType: CategoryId) {
+    const defaultTier = getDefaultPackageSizeTier(packageType);
+    const nextTier =
+      data.packageSizeTier &&
+      isPackageSizeTierAllowed(packageType, data.packageSizeTier)
+        ? data.packageSizeTier
+        : defaultTier;
+
+    onChange({
+      packageType: packageType as PackageType,
+      packageSizeTier: nextTier,
+    });
+  }
+
+  function handleSizeTierSelect(tier: Exclude<PackageSizeTier, "">) {
+    onChange({ packageSizeTier: tier });
+  }
 
   return (
     <div className="space-y-6">
@@ -127,7 +174,7 @@ export default function PackageStep({ data, errors, onChange }: PackageStepProps
               <button
                 key={option.id}
                 type="button"
-                onClick={() => onChange({ packageType: option.id as PackageType })}
+                onClick={() => handleCategorySelect(option.id)}
                 className={`relative cursor-pointer rounded-xl border-2 px-3 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   selected
                     ? `${option.selectedBorder} ${option.selectedBg} shadow-sm`
@@ -180,93 +227,131 @@ export default function PackageStep({ data, errors, onChange }: PackageStepProps
         </div>
       </section>
 
-      <section className="border-y border-border">
-        <button
-          type="button"
-          onClick={() => setDetailsOpen((open) => !open)}
-          className="flex w-full cursor-pointer items-start gap-3 py-4 text-left transition-colors hover:bg-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-expanded={isDetailsExpanded}
-        >
-          <IconChevronDown
-            className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isDetailsExpanded ? "rotate-180" : ""}`}
+      {data.packageType ? (
+        <section className="space-y-3 border-t border-border pt-6">
+          <div className="space-y-1">
+            <FieldLabel htmlFor="packageDescription">What&apos;s inside?</FieldLabel>
+            <p className="text-caption text-muted-foreground">
+              {descriptionRequired
+                ? "Required for packed goods so the driver knows what to expect."
+                : "Optional — helps the driver and our team handle your item safely."}
+            </p>
+          </div>
+          <Textarea
+            id="packageDescription"
+            value={data.packageDescription}
+            onChange={(event) => onChange({ packageDescription: event.target.value })}
+            placeholder={getPackageDescriptionPlaceholder(data.packageType)}
+            maxLength={MAX_PACKAGE_DESCRIPTION_LENGTH}
+            error={!!errors.packageDescription}
+            className="min-h-24 resize-none rounded-[4px]! text-small"
           />
-          <span className="min-w-0 flex-1">
-            <span className="block text-body font-semibold text-foreground">
-              Additional details{" "}
-              <span className="font-normal text-muted-foreground">(optional)</span>
-            </span>
-            <span className="mt-0.5 block text-small text-muted-foreground">
-              Add dimensions and weight for better accuracy.
-            </span>
-          </span>
-        </button>
+          <FieldError message={errors.packageDescription} />
+        </section>
+      ) : null}
 
-        {isDetailsExpanded ? (
-          <div className="space-y-6 border-t border-border pb-5 pl-7 pr-1 pt-5">
-            <div>
-              <FieldLabel>
-                Dimensions{" "}
-                {dimensionsOptional ? (
-                  <span className="font-normal text-muted-foreground">(optional)</span>
-                ) : data.packageType ? (
-                  <span className="font-normal text-muted-foreground">(required)</span>
-                ) : null}
-              </FieldLabel>
-              <p className="mb-3 text-caption text-muted-foreground">Unit: cm</p>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <FieldLabel htmlFor="length">Length</FieldLabel>
-                  <Input
-                    id="length"
-                    inputMode="decimal"
-                    placeholder="30"
-                    value={data.length}
-                    onChange={(e) => onChange({ length: e.target.value })}
-                    error={!!errors.length}
-                  />
-                  <FieldError message={errors.length} />
-                </div>
-                <div>
-                  <FieldLabel htmlFor="width">Width</FieldLabel>
-                  <Input
-                    id="width"
-                    inputMode="decimal"
-                    placeholder="20"
-                    value={data.width}
-                    onChange={(e) => onChange({ width: e.target.value })}
-                    error={!!errors.width}
-                  />
-                  <FieldError message={errors.width} />
-                </div>
-                <div>
-                  <FieldLabel htmlFor="height">Height</FieldLabel>
-                  <Input
-                    id="height"
-                    inputMode="decimal"
-                    placeholder="15"
-                    value={data.height}
-                    onChange={(e) => onChange({ height: e.target.value })}
-                    error={!!errors.height}
-                  />
-                  <FieldError message={errors.height} />
-                </div>
-              </div>
-            </div>
+      <section className="space-y-4 border-t border-border pt-6">
+        <div className="space-y-1">
+          <h3 className="text-body font-semibold text-foreground">Package size</h3>
+          <p className="text-small text-muted-foreground">
+            {getPackageSizeHelperText(data)}
+          </p>
+        </div>
 
+        <div className="grid gap-3 sm:grid-cols-3">
+          {sizeTierOptions.map((option) => {
+            const disabled =
+              !!data.packageType &&
+              !isPackageSizeTierAllowed(data.packageType, option.id);
+            const selected = data.packageSizeTier === option.id;
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                disabled={disabled}
+                onClick={() => handleSizeTierSelect(option.id)}
+                className={`cursor-pointer rounded-xl border-2 px-3 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-45 ${
+                  selected
+                    ? "border-accent bg-[#fff7ed] shadow-sm"
+                    : "border-border bg-white shadow-sm hover:border-foreground/20"
+                }`}
+              >
+                <p className="text-small font-semibold text-foreground">
+                  {PACKAGE_SIZE_TIER_LABELS[option.id]}
+                </p>
+                <p className="mt-0.5 text-caption leading-snug text-muted-foreground">
+                  {option.description}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+        <FieldError message={errors.packageSizeTier} />
+
+        {data.packageSizeTier ? (
+          <div className="space-y-6 rounded-xl border border-border bg-background p-4 md:p-5">
             <div className="max-w-xs">
-              <FieldLabel htmlFor="weight">
-                Weight{" "}
-                <span className="font-normal text-muted-foreground">(optional)</span>
-              </FieldLabel>
-              <p className="mb-3 text-caption text-muted-foreground">Unit: kg</p>
+              <FieldLabel htmlFor="weight">Weight</FieldLabel>
+              <p className="mb-3 text-caption text-muted-foreground">
+                Unit: kg
+                {weightRequired ? "" : " — optional for small items"}
+              </p>
               <Input
                 id="weight"
                 inputMode="decimal"
-                placeholder="2.5"
+                placeholder={weightRequired ? "2.5" : "0.5"}
                 value={data.weight}
                 onChange={(e) => onChange({ weight: e.target.value })}
+                error={!!errors.weight}
               />
+              <FieldError message={errors.weight} />
             </div>
+
+            {showDimensions ? (
+              <div>
+                <FieldLabel>Dimensions</FieldLabel>
+                <p className="mb-3 text-caption text-muted-foreground">Unit: cm</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <FieldLabel htmlFor="length">Length</FieldLabel>
+                    <Input
+                      id="length"
+                      inputMode="decimal"
+                      placeholder="30"
+                      value={data.length}
+                      onChange={(e) => onChange({ length: e.target.value })}
+                      error={!!errors.length}
+                    />
+                    <FieldError message={errors.length} />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="width">Width</FieldLabel>
+                    <Input
+                      id="width"
+                      inputMode="decimal"
+                      placeholder="20"
+                      value={data.width}
+                      onChange={(e) => onChange({ width: e.target.value })}
+                      error={!!errors.width}
+                    />
+                    <FieldError message={errors.width} />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="height">Height</FieldLabel>
+                    <Input
+                      id="height"
+                      inputMode="decimal"
+                      placeholder="15"
+                      value={data.height}
+                      onChange={(e) => onChange({ height: e.target.value })}
+                      error={!!errors.height}
+                    />
+                    <FieldError message={errors.height} />
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </section>
@@ -277,19 +362,7 @@ export default function PackageStep({ data, errors, onChange }: PackageStepProps
 export function validatePackageStep(
   data: DeliveryFormData,
 ): Partial<Record<keyof DeliveryFormData, string>> {
-  const errors: Partial<Record<keyof DeliveryFormData, string>> = {};
-  if (!data.packageType) errors.packageType = "Select an item category.";
-  if (data.packagePhotoUrls.length < MIN_PACKAGE_PHOTOS) {
-    errors.packagePhotoUrls = `Add at least ${MIN_PACKAGE_PHOTOS} package photos.`;
-  }
-
-  if (!isDimensionsOptional(data.packageType)) {
-    if (!data.length.trim()) errors.length = "Required.";
-    if (!data.width.trim()) errors.width = "Required.";
-    if (!data.height.trim()) errors.height = "Required.";
-  }
-
-  return errors;
+  return validatePackageFields(data);
 }
 
 export { PACKAGE_LABELS };

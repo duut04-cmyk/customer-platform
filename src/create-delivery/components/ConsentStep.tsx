@@ -1,5 +1,6 @@
 "use client";
 
+import { PROHIBITED_ITEMS } from "@/compliance/prohibitedItems";
 import type { DeliveryFormData } from "../types";
 import { hasComplianceConsent } from "../types";
 
@@ -8,18 +9,6 @@ type ConsentStepProps = {
   errors: Partial<Record<keyof DeliveryFormData, string>>;
   onChange: (updates: Partial<DeliveryFormData>) => void;
 };
-
-const PROHIBITED_ITEMS = [
-  "Weapons, ammunition, fireworks, and explosives",
-  "Alcohol and tobacco products (where restricted by law)",
-  "Illegal drugs and controlled substances without valid prescription",
-  "Hazardous, flammable, or corrosive chemicals and aerosols",
-  "Cash, currency, bearer instruments, and government IDs without authorization",
-  "Live animals, human remains, and biological samples (unless explicitly supported)",
-  "Counterfeit goods, stolen property, and obscene or banned publications",
-  "Non-compliant lithium batteries and dangerous goods (DG items)",
-  "Other items prohibited under applicable Indian law",
-];
 
 type ConsentCheckboxProps = {
   checked: boolean;

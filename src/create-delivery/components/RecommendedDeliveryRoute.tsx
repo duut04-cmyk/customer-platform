@@ -1,4 +1,4 @@
-import { IconTruck } from "@/dashboard/components/icons";
+import DeliveryRouteMap from "@/common/components/DeliveryRouteMap";
 
 type RecommendedDeliveryRouteProps = {
   pickupAddress: string;
@@ -6,45 +6,6 @@ type RecommendedDeliveryRouteProps = {
   pickupTime: string;
   deliveryEta: string;
 };
-
-function RouteMapIllustration() {
-  return (
-    <div
-      className="relative h-28 overflow-hidden rounded-lg bg-surface/60 md:h-32"
-      aria-hidden="true"
-    >
-      <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 400 120"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          <pattern id="route-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path
-              d="M 20 0 L 0 0 0 20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="0.5"
-              className="text-border/60"
-            />
-          </pattern>
-        </defs>
-        <rect width="400" height="120" fill="url(#route-grid)" />
-        <path
-          d="M 60 70 Q 140 30, 200 55 T 340 45"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeDasharray="6 4"
-          className="text-accent/70"
-        />
-      </svg>
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 shadow-sm">
-        <IconTruck className="h-4 w-4 text-foreground/70" />
-      </div>
-    </div>
-  );
-}
 
 export default function RecommendedDeliveryRoute({
   pickupAddress,
@@ -65,7 +26,7 @@ export default function RecommendedDeliveryRoute({
       </h3>
 
       <div className="mt-4">
-        <RouteMapIllustration />
+        <DeliveryRouteMap pickupAddress={pickupAddress} dropAddress={dropAddress} />
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">

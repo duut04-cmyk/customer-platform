@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import Input from "@/common/components/Input";
+import PhoneInput from "@/common/components/PhoneInput";
 import {
-  IconChevronDown,
   IconCrosshair,
   IconMapPinFilled,
   IconUserFilled,
@@ -91,28 +91,13 @@ function PhoneField({
   return (
     <div>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <div className="flex gap-2">
-        <div className="relative shrink-0">
-          <select
-            aria-label="Country code"
-            className="h-11 cursor-pointer appearance-none rounded-md border border-border bg-background py-0 pl-3 pr-8 text-small text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            defaultValue="+91"
-            disabled
-          >
-            <option value="+91">+91</option>
-          </select>
-          <IconChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-        </div>
-        <Input
-          id={id}
-          type="tel"
-          placeholder="Enter phone number"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          error={!!error}
-          className="min-w-0 flex-1"
-        />
-      </div>
+      <PhoneInput
+        id={id}
+        value={value}
+        onChange={onChange}
+        error={!!error}
+        placeholder="Enter phone number"
+      />
       <FieldError message={error} />
     </div>
   );
