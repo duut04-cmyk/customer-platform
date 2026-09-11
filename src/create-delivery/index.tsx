@@ -4,13 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CreateDeliveryPageTopSection from "./components/CreateDeliveryPageTopSection";
 import SafetyComplianceCard from "@/dashboard/components/SafetyComplianceCard";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
-import BestDeliveryOption, {
-  BestDeliveryOptionHeader,
-} from "./components/BestDeliveryOption";
+import BestDeliveryOption from "./components/BestDeliveryOption";
 import BackToDeliveryOptionLink from "./components/BackToDeliveryOptionLink";
 import BookingDelivery, { BookingDeliveryHeader } from "./components/BookingDelivery";
 import ConsentStep, { validateConsentStep } from "./components/ConsentStep";
 import CreateDeliveryBackLink from "./components/CreateDeliveryBackLink";
+import CreateDeliveryFlowPageHeader from "./components/CreateDeliveryFlowPageHeader";
 import DeliveryConfirmed, {
   DeliveryConfirmedHeader,
 } from "./components/DeliveryConfirmed";
@@ -243,7 +242,7 @@ export default function CreateDelivery() {
   return (
     <main className={`${DASHBOARD_MAIN} bg-white`}>
       <div className="space-y-4 lg:space-y-5">
-        <CreateDeliveryPageTopSection showHeader={showFormLayout} />
+        {showFormLayout ? <CreateDeliveryPageTopSection showHeader /> : null}
 
         {showFormLayout && (
           <div className="mt-6 space-y-4 lg:mt-8 lg:space-y-5">
@@ -278,8 +277,19 @@ export default function CreateDelivery() {
         )}
 
         {step === "finding" && (
-          <div className="space-y-5">
-            <CreateDeliveryBackLink />
+          <div className="space-y-6 lg:space-y-8">
+            <CreateDeliveryFlowPageHeader
+              title={
+                data.timing === "scheduled"
+                  ? "When should we deliver?"
+                  : "Finding the best delivery option"
+              }
+              subtitle={
+                data.timing === "scheduled"
+                  ? "You've selected a delivery time slot. Now we're finding the best available service for your request."
+                  : "Doot is checking available delivery services based on price, delivery time, package compatibility, and your requirements."
+              }
+            />
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
               <FindingDelivery
@@ -297,9 +307,11 @@ export default function CreateDelivery() {
         )}
 
         {step === "best_option" && recommendation && (
-          <div className="space-y-5">
-            <CreateDeliveryBackLink />
-            <BestDeliveryOptionHeader />
+          <div className="space-y-6 lg:space-y-8">
+            <CreateDeliveryFlowPageHeader
+              title="Best delivery option"
+              subtitle="We found the best available option based on price, delivery time, availability, and your requirements."
+            />
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
               <BestDeliveryOption

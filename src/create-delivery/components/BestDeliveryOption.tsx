@@ -156,17 +156,3 @@ export default function BestDeliveryOption({
     </section>
   );
 }
-
-export function BestDeliveryOptionHeader() {
-  return (
-    <div className="space-y-2">
-      <h2 className="text-heading font-bold tracking-tight text-foreground md:text-heading-md">
-        Best delivery option
-      </h2>
-      <p className="max-w-2xl text-body text-muted-foreground">
-        We found the best available option based on price, delivery time, availability,
-        and your requirements.
-      </p>
-    </div>
-  );
-}
