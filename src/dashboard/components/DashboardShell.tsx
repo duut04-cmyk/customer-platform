@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
-import { PRIVATE_IN_PAGE_HEADER_PATHS } from "@/utils/appPaths";
+import { usesPrivateInPageHeader } from "@/utils/appPaths";
 import { DashboardShellContext } from "./DashboardShellContext";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardTopHeader from "./DashboardTopHeader";
@@ -14,9 +14,7 @@ type DashboardShellProps = {
 export default function DashboardShell({ children }: DashboardShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const pathname = usePathname();
-  const usesInPageHeader = PRIVATE_IN_PAGE_HEADER_PATHS.includes(
-    pathname as (typeof PRIVATE_IN_PAGE_HEADER_PATHS)[number],
-  );
+  const usesInPageHeader = usesPrivateInPageHeader(pathname);
 
   const shellContext = useMemo(
     () => ({ openMobileNav: () => setMobileNavOpen(true) }),

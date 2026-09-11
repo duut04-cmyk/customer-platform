@@ -6,7 +6,10 @@ import {
   IconPackageFilled,
 } from "@/dashboard/components/icons";
 import {
+  formatDimensions,
+  formatPackageSizeSummary,
   formatTimingSummary,
+  formatWeight,
   PACKAGE_LABELS,
   type DeliveryFormData,
   type ProgressStep,
@@ -63,18 +66,28 @@ function getCategorySummary(data: DeliveryFormData): string {
 function getPackageDetailsSummary(data: DeliveryFormData): string {
   const parts: string[] = [];
 
+  if (data.packageSizeTier) {
+    parts.push(formatPackageSizeSummary(data));
+  }
+
+  if (data.packageDescription.trim()) {
+    parts.push(data.packageDescription.trim());
+  }
+
   if (data.packagePhotoUrls.length > 0) {
     parts.push(
       `${data.packagePhotoUrls.length} photo${data.packagePhotoUrls.length === 1 ? "" : "s"}`,
     );
   }
 
-  if (data.length && data.width && data.height) {
-    parts.push(`${data.length} × ${data.width} × ${data.height} cm`);
+  const dimensions = formatDimensions(data);
+  if (dimensions !== "Not provided") {
+    parts.push(dimensions);
   }
 
-  if (data.weight.trim()) {
-    parts.push(`${data.weight} kg`);
+  const weight = formatWeight(data);
+  if (weight !== "Not provided") {
+    parts.push(weight);
   }
 
   if (parts.length > 0) return parts.join(" · ");

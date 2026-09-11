@@ -33,6 +33,8 @@ export type DeliveryDriver = {
   phone?: string;
   status: DriverStatus;
   initials: string;
+  photoUrl?: string;
+  deliveryCount?: number;
 };
 
 export type Delivery = {
@@ -58,12 +60,33 @@ export type Delivery = {
   pricing?: DeliveryPricing;
   driver?: DeliveryDriver;
   packagePhotoUrl?: string;
+  packagePhotoUrls?: string[];
   scheduledAt?: string;
   prohibitedItemsConsent?: boolean;
   pickupOtp?: string;
   deliveryOtp?: string;
   pickupOtpVerified?: boolean;
   deliveryOtpVerified?: boolean;
+  bookedAtLabel?: string;
+  estimatedDuration?: string;
+  estimatedDeliveryLabel?: string;
+  pickupWindowLabel?: string;
+  serviceType?: string;
+  serviceTagline?: string;
+  packagePhotoCount?: number;
+  specialInstructions?: string;
+  deliveryEta?: string;
+  deliveredAtLabel?: string;
+  cancelledAtLabel?: string;
+  cancelReason?: string;
+  customerRating?: number;
+  customerRatingComment?: string;
+  ratedAt?: string;
+  trackingMilestones?: {
+    pickedUp?: string;
+    onTheWay?: string;
+    arrivingSoon?: string;
+  };
 };
 
 export type DeliveryFilter =
@@ -200,6 +223,89 @@ export function buildDefaultTimeline(
     }
     return { ...step, state: "upcoming" as TimelineEventState };
   });
+}
+
+const CUSTOMER_TIMELINE_STEPS = [
+  { id: "order_confirmed", label: "Order confirmed" },
+  { id: "driver_assigned", label: "Driver assigned" },
+  { id: "picked_up", label: "Picked up" },
+  { id: "on_the_way", label: "On the way" },
+  { id: "delivered", label: "Delivered" },
+] as const;
+
+const CUSTOMER_TIMELINE_STATUS_INDEX: Record<DeliveryStatus, number> = {
+  booked: 0,
+  driver_assigned: 1,
+  picked_up: 2,
+  in_transit: 3,
+  delivered: 4,
+  failed: 0,
+  cancelled: 0,
+};
+
+export function buildCustomerDetailTimeline(delivery: Delivery): TimelineEvent[] {
+  const times: Record<string, string | undefined> = {
+    order_confirmed: "Sep 10, 10:32 AM",
+    driver_assigned: "Sep 10, 10:35 AM",
+    picked_up: "Sep 10, 10:48 AM",
+    on_the_way: delivery.status === "in_transit" ? "Sep 10, 11:05 AM" : undefined,
+    delivered: delivery.deliveryEta ?? `ETA ${delivery.estimatedArrival}`,
+  };
+
+  if (delivery.status === "cancelled" || delivery.status === "failed") {
+    return CUSTOMER_TIMELINE_STEPS.map((step, index) => ({
+      id: step.id,
+      label: step.label,
+      time: times[step.id],
+      state:
+        index === 0
+          ? ("complete" as TimelineEventState)
+          : ("upcoming" as TimelineEventState),
+    }));
+  }
+
+  if (delivery.status === "delivered") {
+    return CUSTOMER_TIMELINE_STEPS.map((step) => ({
+      id: step.id,
+      label: step.label,
+      time: step.id === "delivered" ? delivery.estimatedArrival : times[step.id],
+      state: "complete" as TimelineEventState,
+    }));
+  }
+
+  const currentIndex = CUSTOMER_TIMELINE_STATUS_INDEX[delivery.status];
+
+  return CUSTOMER_TIMELINE_STEPS.map((step, index) => {
+    let state: TimelineEventState = "upcoming";
+    if (index < currentIndex) state = "complete";
+    else if (index === currentIndex) state = "current";
+
+    return {
+      id: step.id,
+      label: step.label,
+      time: times[step.id],
+      state,
+    };
+  });
+}
+
+export function isActiveDeliveryDetailStatus(status: DeliveryStatus): boolean {
+  return (
+    status === "picked_up" || status === "in_transit" || status === "driver_assigned"
+  );
+}
+
+export function isActiveTrackingStatus(status: DeliveryStatus): boolean {
+  return (
+    status === "booked" ||
+    status === "driver_assigned" ||
+    status === "picked_up" ||
+    status === "in_transit"
+  );
+}
+
+export function canCancelDelivery(status: DeliveryStatus): boolean {
+  return status === "booked" || status === "driver_assigned";
 }
 
 export { calculateDeliveryPricing };

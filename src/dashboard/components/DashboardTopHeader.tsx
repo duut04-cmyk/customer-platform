@@ -28,7 +28,7 @@ export default function DashboardTopHeader({ onMenuClick }: DashboardTopHeaderPr
 
         <Suspense
           fallback={
-            <div className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-surface/50 lg:max-w-md" />
+            <div className="h-9 min-w-0 flex-1 rounded-[6px] border border-border bg-surface/50 lg:max-w-md" />
           }
         >
           <DashboardSearch variant="flex" className="lg:max-w-md" />

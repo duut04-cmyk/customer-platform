@@ -6,6 +6,7 @@ import Logo from "@/common/components/Logo";
 import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
 import { DASHBOARD_PATH } from "@/dashboard/paths";
 import { DELIVERIES_PATH } from "@/deliveries/paths";
+import { HELP_SUPPORT_PATH } from "@/help/paths";
 import { IconClose, IconHome, IconPackage, IconPlusCircle } from "./icons";
 import { DASHBOARD_SIDEBAR_WIDTH } from "./layout";
 
@@ -69,12 +70,12 @@ function SidebarFooter() {
   return (
     <div className="border-t border-border px-4 py-4">
       <p className="text-caption font-semibold text-foreground">Need help?</p>
-      <a
-        href="#"
+      <Link
+        href={HELP_SUPPORT_PATH}
         className="mt-0.5 inline-block text-caption font-medium text-accent hover:text-accent/80"
       >
         Contact support
-      </a>
+      </Link>
     </div>
   );
 }
