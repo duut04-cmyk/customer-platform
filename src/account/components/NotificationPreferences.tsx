@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import Button from "@/common/components/Button";
-import { MOCK_USER, type NotificationPreferences as Prefs } from "../mockUser";
 import SettingsCard from "./SettingsCard";
+
+type NotificationPreferences = {
+  deliveryUpdates: boolean;
+  smsAlerts: boolean;
+  emailAlerts: boolean;
+  marketingEmails: boolean;
+};
+
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  deliveryUpdates: true,
+  smsAlerts: true,
+  emailAlerts: true,
+  marketingEmails: false,
+};
 
 type ToggleRowProps = {
   label: string;
@@ -46,10 +59,12 @@ function ToggleRow({ label, description, checked, onChange }: ToggleRowProps) {
 }
 
 export default function NotificationPreferences() {
-  const [prefs, setPrefs] = useState<Prefs>(MOCK_USER.notifications);
+  const [prefs, setPrefs] = useState<NotificationPreferences>(
+    DEFAULT_NOTIFICATION_PREFERENCES,
+  );
   const [saved, setSaved] = useState(false);
 
-  const update = (key: keyof Prefs, value: boolean) => {
+  const update = (key: keyof NotificationPreferences, value: boolean) => {
     setPrefs((current) => ({ ...current, [key]: value }));
   };
 

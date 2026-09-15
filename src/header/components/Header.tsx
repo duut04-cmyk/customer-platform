@@ -17,9 +17,10 @@ const linkClassName =
 
 type HeaderProps = {
   onLogin?: () => void;
+  onGetStarted?: () => void;
 };
 
-export default function Header({ onLogin }: HeaderProps) {
+export default function Header({ onLogin, onGetStarted }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -45,6 +46,11 @@ export default function Header({ onLogin }: HeaderProps) {
   const handleLogin = () => {
     closeMenu();
     onLogin?.();
+  };
+
+  const handleGetStarted = () => {
+    closeMenu();
+    onGetStarted?.();
   };
 
   return (
@@ -78,13 +84,19 @@ export default function Header({ onLogin }: HeaderProps) {
               Login
             </button>
           ) : (
-            <Link href="/get-started?mode=login" className={linkClassName}>
+            <Link href="/?auth=login" className={linkClassName}>
               Login
             </Link>
           )}
-          <Link href="/get-started">
-            <Button className="h-12 px-7 text-body">Get started</Button>
-          </Link>
+          {onGetStarted ? (
+            <Button className="h-12 px-7 text-body" onClick={onGetStarted}>
+              Get started
+            </Button>
+          ) : (
+            <Link href="/?auth=signup">
+              <Button className="h-12 px-7 text-body">Get started</Button>
+            </Link>
+          )}
         </div>
 
         <button
@@ -136,7 +148,7 @@ export default function Header({ onLogin }: HeaderProps) {
               </button>
             ) : (
               <Link
-                href="/get-started?mode=login"
+                href="/?auth=login"
                 className={`${linkClassName} rounded-md px-3 py-3 hover:bg-surface`}
                 onClick={closeMenu}
               >
@@ -144,9 +156,15 @@ export default function Header({ onLogin }: HeaderProps) {
               </Link>
             )}
             <div className="pt-2">
-              <Link href="/get-started" onClick={closeMenu}>
-                <Button className="w-full">Get started</Button>
-              </Link>
+              {onGetStarted ? (
+                <Button className="w-full" onClick={handleGetStarted}>
+                  Get started
+                </Button>
+              ) : (
+                <Link href="/?auth=signup" onClick={closeMenu}>
+                  <Button className="w-full">Get started</Button>
+                </Link>
+              )}
             </div>
           </div>
         </nav>

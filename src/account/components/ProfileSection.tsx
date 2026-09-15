@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import type { PublicUser } from "@/api/auth";
+import { formatPhoneDisplay } from "@/auth/user-display";
 import Button from "@/common/components/Button";
 import Input from "@/common/components/Input";
-import { MOCK_USER } from "../mockUser";
+import { useAuthStore } from "@/stores/auth.store";
 import SettingsCard from "./SettingsCard";
 
-export default function ProfileSection() {
-  const [name, setName] = useState(MOCK_USER.name);
-  const [phone, setPhone] = useState(MOCK_USER.phone);
+type ProfileFormProps = {
+  user: PublicUser;
+};
+
+function ProfileForm({ user }: ProfileFormProps) {
+  const [name, setName] = useState(user.name);
+  const [phone, setPhone] = useState(formatPhoneDisplay(user.phone));
   const [saved, setSaved] = useState(false);
 
   const handleSave = (event: React.FormEvent) => {
@@ -47,7 +53,7 @@ export default function ProfileSection() {
           <Input
             id="profile-email"
             type="email"
-            value={MOCK_USER.email}
+            value={user.email}
             readOnly
             disabled
             className="mt-1.5"
@@ -87,4 +93,14 @@ export default function ProfileSection() {
       </form>
     </SettingsCard>
   );
+}
+
+export default function ProfileSection() {
+  const user = useAuthStore((state) => state.user);
+
+  if (!user) {
+    return null;
+  }
+
+  return <ProfileForm key={user.id} user={user} />;
 }

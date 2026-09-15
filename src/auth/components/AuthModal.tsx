@@ -24,7 +24,7 @@ export default function AuthModal({
     <Modal
       open={mode !== null}
       onClose={onClose}
-      className="max-h-[calc(100dvh-32px)] max-w-[440px] !p-0 overflow-y-auto md:max-w-[460px]"
+      className="max-h-[calc(100dvh-32px)] max-w-[440px] !rounded-[4px] !p-0 overflow-y-auto md:max-w-[460px]"
     >
       <div className="relative px-6 py-6 md:px-8 md:py-8">
         <button
@@ -58,6 +58,7 @@ export default function AuthModal({
         {mode === "signup" && (
           <SignupForm
             onSwitchToLogin={() => onSwitchMode("login")}
+            onAuthSuccess={onClose}
             redirectTo={redirectTo}
           />
         )}
