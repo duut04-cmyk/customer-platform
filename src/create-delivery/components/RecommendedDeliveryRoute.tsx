@@ -25,8 +25,12 @@ export default function RecommendedDeliveryRoute({
         Delivery route
       </h3>
 
-      <div className="mt-4">
-        <DeliveryRouteMap pickupAddress={pickupAddress} dropAddress={dropAddress} />
+      <div className="mt-4 -mx-4 sm:mx-0">
+        <DeliveryRouteMap
+          pickupAddress={pickupAddress}
+          dropAddress={dropAddress}
+          className="rounded-none border-x-0 sm:rounded-lg sm:border-x"
+        />
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">

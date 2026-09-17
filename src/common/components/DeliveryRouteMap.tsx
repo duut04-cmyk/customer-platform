@@ -42,7 +42,7 @@ export default function DeliveryRouteMap({
   if (!embedUrl) {
     return (
       <div
-        className={`flex h-[360px] items-center justify-center rounded-lg border border-border bg-surface/60 md:h-[420px] lg:h-[480px] ${className}`}
+        className={`flex h-[min(55vh,480px)] items-center justify-center rounded-lg border border-border bg-surface/60 sm:h-[360px] md:h-[420px] lg:h-[480px] ${className}`}
       >
         <p className="px-4 text-center text-small text-muted-foreground">
           Add pickup and drop-off addresses to preview the route.
@@ -58,7 +58,7 @@ export default function DeliveryRouteMap({
       <iframe
         title="Delivery route map"
         src={embedUrl}
-        className="h-[360px] w-full border-0 md:h-[420px] lg:h-[480px]"
+        className="h-[min(55vh,480px)] w-full border-0 sm:h-[360px] md:h-[420px] lg:h-[480px]"
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
         allowFullScreen

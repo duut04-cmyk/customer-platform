@@ -130,13 +130,16 @@ export default function SignupForm({
     );
   }
 
+  const fieldLabelClassName = "mb-1 block text-small font-medium text-foreground";
+  const fieldErrorClassName = "mt-1 text-caption text-foreground";
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-1 text-center">
-        <h2 className="text-subheading font-bold tracking-tight text-foreground">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="space-y-0.5 text-center sm:space-y-1">
+        <h2 className="text-heading font-bold tracking-tight text-foreground sm:text-subheading">
           Create your account
         </h2>
-        <p className="text-small text-muted-foreground">
+        <p className="text-caption text-muted-foreground sm:text-small">
           Send deliveries without the hassle.
         </p>
       </div>
@@ -145,12 +148,13 @@ export default function SignupForm({
 
       <AuthDivider />
 
-      <form className="space-y-3.5" onSubmit={handleSubmit} noValidate>
+      <form
+        className="grid grid-cols-1 gap-y-3 sm:gap-y-3.5"
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <div>
-          <label
-            htmlFor={nameId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={nameId} className={fieldLabelClassName}>
             Full name
           </label>
           <Input
@@ -162,17 +166,14 @@ export default function SignupForm({
             autoComplete="name"
           />
           {errors.name && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.name}
             </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor={emailId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={emailId} className={fieldLabelClassName}>
             Email
           </label>
           <Input
@@ -184,17 +185,14 @@ export default function SignupForm({
             autoComplete="email"
           />
           {errors.email && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.email}
             </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor={phoneId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={phoneId} className={fieldLabelClassName}>
             Phone number
           </label>
           <PhoneInput
@@ -206,17 +204,14 @@ export default function SignupForm({
             placeholder="Enter phone number"
           />
           {errors.phone && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.phone}
             </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor={passwordId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={passwordId} className={fieldLabelClassName}>
             Password
           </label>
           <PasswordInput
@@ -227,21 +222,21 @@ export default function SignupForm({
             autoComplete="new-password"
           />
           {errors.password && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.password}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor={termsId} className="flex cursor-pointer items-start gap-2.5">
+          <label htmlFor={termsId} className="flex cursor-pointer items-start gap-2">
             <input
               id={termsId}
               name="terms"
               type="checkbox"
               className="auth-checkbox mt-0.5"
             />
-            <span className="text-small leading-snug text-muted-foreground">
+            <span className="text-caption leading-snug text-muted-foreground sm:text-small">
               I agree to Doot&apos;s{" "}
               <a
                 href="#"
@@ -261,30 +256,32 @@ export default function SignupForm({
             </span>
           </label>
           {errors.terms && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.terms}
             </p>
           )}
         </div>
 
-        <Button
-          type="submit"
-          className="h-11 w-full gap-2 rounded-[6px] text-body font-semibold"
-          disabled={loading}
-          aria-busy={loading}
-        >
-          {loading ? (
-            <>
-              <LoadingSpinner />
-              Creating account...
-            </>
-          ) : (
-            "Create account"
-          )}
-        </Button>
+        <div>
+          <Button
+            type="submit"
+            className="h-11 w-full gap-2 rounded-[6px] text-body font-semibold"
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
+          </Button>
+        </div>
       </form>
 
-      <p className="text-center text-small text-muted-foreground">
+      <p className="text-center text-caption text-muted-foreground sm:text-small">
         Already have an account?{" "}
         <button
           type="button"

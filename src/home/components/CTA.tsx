@@ -5,9 +5,12 @@ import { ArrowRightIcon } from "./icons";
 
 export default function CTA({ onCreateDelivery }: { onCreateDelivery?: () => void }) {
   return (
-    <section id="get-started" className="bg-background py-10 md:py-14">
+    <section
+      id="get-started"
+      className="scroll-mt-20 py-5 sm:py-6 md:py-8 lg:py-12 xl:py-14"
+    >
       <div className="site-content">
-        <div className="relative overflow-hidden rounded-2xl bg-cta-surface px-6 py-10 md:flex md:items-center md:justify-between md:gap-8 md:px-12 md:py-12 lg:px-14">
+        <div className="relative overflow-hidden rounded-2xl bg-cta-surface px-5 py-8 text-center md:flex md:items-center md:justify-between md:gap-8 md:px-12 md:py-12 md:text-left lg:px-14">
           <svg
             className="pointer-events-none absolute inset-0 h-full w-full"
             viewBox="0 0 1200 160"
@@ -46,16 +49,16 @@ export default function CTA({ onCreateDelivery }: { onCreateDelivery?: () => voi
             <circle cx="10" cy="9" r="1.5" fill="currentColor" />
           </svg>
 
-          <div className="relative z-10 max-w-xl md:pl-4">
+          <div className="relative z-10 mx-auto max-w-xl md:mx-0 md:pl-4">
             <h2 className="text-heading font-bold tracking-tight text-white md:text-heading-md">
               Ready to <span className="text-accent">send something</span>?
             </h2>
-            <p className="mt-2 text-body-lg text-white/65">
+            <p className="mt-1.5 text-body text-white/65 md:mt-2 md:text-body-lg">
               Let Doot figure out the rest.
             </p>
           </div>
 
-          <div className="relative z-10 mt-6 shrink-0 md:mt-0">
+          <div className="relative z-10 mt-5 flex shrink-0 justify-center md:mt-0 md:justify-start">
             <Button
               className="h-12 gap-2 px-7 text-body font-semibold"
               onClick={onCreateDelivery}

@@ -35,24 +35,27 @@ function SummaryRow({
   const isEmpty = value === emptyValue;
 
   return (
-    <div className="py-3 first:pt-4 last:pb-4">
-      <div className="flex items-start gap-3">
+    <div className="py-2.5 first:pt-3 last:pb-3 sm:py-3 sm:first:pt-4 sm:last:pb-4">
+      <div className="flex items-start gap-2.5 sm:gap-3">
         <span
-          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${iconBgClassName}`}
+          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconBgClassName}`}
         >
           {icon}
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-caption font-medium text-muted-foreground">{label}</p>
           <p
-            className={`mt-0.5 text-small ${isEmpty ? "text-muted-foreground" : "font-medium text-foreground"}`}
+            className={`mt-0.5 break-words text-caption sm:text-small ${isEmpty ? "text-muted-foreground" : "font-medium text-foreground"}`}
           >
             {value}
           </p>
         </div>
       </div>
       {showDivider ? (
-        <div className="ml-12 mr-3 mt-3 border-b border-border/70" aria-hidden="true" />
+        <div
+          className="ml-10 mt-2.5 border-b border-border/70 sm:ml-12 sm:mt-3"
+          aria-hidden="true"
+        />
       ) : null}
     </div>
   );
@@ -173,14 +176,16 @@ export default function YourDeliverySummaryCard({
   const rows = buildRows(data, currentStep);
 
   return (
-    <section className="overflow-hidden rounded-xl border border-border bg-background">
-      <div className="bg-[#fff7ed] px-4 py-4">
-        <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
-            <IconPackageFilled className="h-5 w-5" />
+    <section className="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-border bg-background">
+      <div className="bg-[#fff7ed] px-3 py-3 sm:px-4 sm:py-4">
+        <div className="flex items-start gap-2.5 sm:gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm sm:h-10 sm:w-10">
+            <IconPackageFilled className="h-4 w-4 sm:h-5 sm:w-5" />
           </span>
-          <div>
-            <h3 className="text-body font-bold text-foreground">Your delivery</h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-small font-bold text-foreground sm:text-body">
+              Your delivery
+            </h3>
             <p className="mt-0.5 text-caption text-muted-foreground">
               Quick summary of your delivery details.
             </p>
@@ -188,7 +193,7 @@ export default function YourDeliverySummaryCard({
         </div>
       </div>
 
-      <div className="px-4">
+      <div className="px-3 sm:px-4">
         {rows.map((row, index) => (
           <SummaryRow
             key={row.label}

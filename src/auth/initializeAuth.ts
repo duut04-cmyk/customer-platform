@@ -3,6 +3,7 @@ import {
   clearSession,
   getAccessToken,
   getRefreshToken,
+  hydrateSessionFromStorage,
   setSessionTokens,
 } from "@/auth/session";
 import { useAuthStore } from "@/stores/auth.store";
@@ -36,6 +37,8 @@ export async function initializeAuth(): Promise<void> {
     store.setError(null);
 
     try {
+      hydrateSessionFromStorage();
+
       const accessToken = getAccessToken();
       const refreshToken = getRefreshToken();
 

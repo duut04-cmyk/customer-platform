@@ -55,8 +55,10 @@ export default function DeliveryDetail({ deliveryId }: DeliveryDetailProps) {
           </div>
 
           <aside className="flex flex-col gap-4">
-            <DetailDriverCard delivery={delivery} />
-            <DetailServiceInfoCard delivery={delivery} />
+            <div className="grid grid-cols-1 gap-4 md:portrait:grid-cols-2 lg:grid-cols-1 [&>*]:min-w-0">
+              <DetailDriverCard delivery={delivery} />
+              <DetailServiceInfoCard delivery={delivery} />
+            </div>
             {isActive ? <DetailSafeCompliantCard /> : <DetailNeedHelpCard />}
           </aside>
         </div>

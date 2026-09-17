@@ -19,7 +19,7 @@ export default function DashboardTopHeader({ onMenuClick }: DashboardTopHeaderPr
       <div className="flex h-14 items-center gap-3 px-4 md:gap-4 md:px-6 lg:h-16 lg:px-8">
         <button
           type="button"
-          className="rounded-lg p-2 text-muted-foreground hover:bg-surface hover:text-foreground lg:hidden"
+          className="rounded-lg p-2 text-muted-foreground hover:bg-surface hover:text-foreground xl:hidden"
           aria-label="Open navigation menu"
           onClick={onMenuClick}
         >

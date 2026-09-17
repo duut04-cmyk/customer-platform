@@ -15,7 +15,7 @@ export type AuthStoreState = {
   reset: () => void;
 };
 
-const initialState = {
+const loggedOutState = {
   user: null,
   isAuthenticated: false,
   isInitializing: false,
@@ -24,7 +24,9 @@ const initialState = {
 } as const;
 
 export const useAuthStore = create<AuthStoreState>((set) => ({
-  ...initialState,
+  ...loggedOutState,
+  /** True until AuthProvider finishes the first initializeAuth() call. */
+  isInitializing: true,
   setUser: (user) =>
     set({
       user,
@@ -39,5 +41,5 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
   setInitializing: (value) => set({ isInitializing: value }),
   setLoading: (value) => set({ isLoading: value }),
   setError: (message) => set({ authError: message }),
-  reset: () => set({ ...initialState }),
+  reset: () => set({ ...loggedOutState }),
 }));

@@ -8,6 +8,7 @@ import { getAuthErrorMessage } from "@/auth/auth-errors";
 import { establishSession } from "@/auth/establishSession";
 import Button from "@/common/components/Button";
 import Input from "@/common/components/Input";
+import { authFormStackClassName } from "@/auth/auth-modal-layout";
 import AuthDivider from "./AuthDivider";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import GoogleButton from "./GoogleButton";
@@ -65,7 +66,7 @@ export default function LoginForm({
 
   return (
     <>
-      <div className="space-y-5">
+      <div className={authFormStackClassName}>
         <div className="space-y-1 text-center">
           <h2 className="text-subheading font-bold tracking-tight text-foreground">
             Welcome back
@@ -79,7 +80,7 @@ export default function LoginForm({
 
         <AuthDivider />
 
-        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <form className="space-y-4.5" onSubmit={handleSubmit} noValidate>
           <div>
             <label
               htmlFor={emailId}

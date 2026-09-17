@@ -57,7 +57,7 @@ export default function GoogleButton({
     <Button
       type="button"
       variant="secondary"
-      className="h-12 w-full gap-2.5 rounded-[6px] text-body font-medium"
+      className="h-11 w-full gap-2.5 rounded-[6px] text-small font-medium sm:h-12 sm:text-body"
       onClick={handleClick}
       disabled={loading || disabled}
       aria-busy={loading}

@@ -9,11 +9,15 @@ import { IconSearch } from "./icons";
 type DashboardSearchProps = {
   className?: string;
   variant?: "wide" | "flex";
+  placeholder?: string;
 };
+
+const DEFAULT_SEARCH_PLACEHOLDER = "Search by delivery ID, location, or service…";
 
 export default function DashboardSearch({
   className = "",
   variant = "flex",
+  placeholder = DEFAULT_SEARCH_PLACEHOLDER,
 }: DashboardSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -53,7 +57,7 @@ export default function DashboardSearch({
     applySearch(value);
   };
 
-  const widthClass = variant === "wide" ? "w-full max-w-md" : "min-w-0 flex-1 w-full";
+  const widthClass = variant === "wide" ? "w-full" : "min-w-0 flex-1 w-full";
 
   return (
     <form
@@ -66,8 +70,8 @@ export default function DashboardSearch({
         type="search"
         value={value}
         onChange={(event) => setDraft(event.target.value)}
-        placeholder="Search by delivery ID, location, or service…"
-        className="h-10 w-full rounded-[6px] border border-border bg-white pl-9 pr-3 text-small text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        placeholder={placeholder}
+        className="h-10 w-full rounded-[6px] border border-border bg-white pl-9 pr-3 text-small text-foreground placeholder:text-muted-foreground outline-none focus:border-border focus-visible:outline-none"
         aria-label="Search deliveries"
       />
     </form>

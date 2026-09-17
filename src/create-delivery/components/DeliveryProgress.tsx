@@ -20,23 +20,40 @@ type DeliveryProgressProps = {
   current: ProgressStep;
 };
 
+function getMobileLabelPosition(index: number, total: number) {
+  if (index === 0) {
+    return "left-0 translate-x-0 text-left";
+  }
+  if (index === total - 1) {
+    return "right-0 translate-x-0 text-right";
+  }
+  return "-translate-x-1/2 text-center";
+}
+
 export default function DeliveryProgress({ current }: DeliveryProgressProps) {
   const currentIndex = stepOrder.indexOf(current);
+  const currentStep = steps[currentIndex];
+  const isFirstStep = currentIndex === 0;
+  const isLastStep = currentIndex === steps.length - 1;
 
   return (
-    <nav className="overflow-x-auto pb-1" aria-label="Delivery creation progress">
-      <ol className="flex min-w-[640px] items-center sm:min-w-0">
+    <nav
+      className="min-w-0 w-full max-w-full overflow-visible pb-1"
+      aria-label="Delivery creation progress"
+    >
+      <ol className="flex w-full min-w-0 items-center">
         {steps.map((step, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = step.id === current;
+          const isLast = index === steps.length - 1;
 
           return (
             <li
               key={step.id}
-              className="flex flex-1 items-center"
+              className={`flex items-center ${isLast ? "shrink-0" : "min-w-0 flex-1"}`}
               aria-current={isCurrent ? "step" : undefined}
             >
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-caption font-bold transition-colors ${
                     isCurrent
@@ -60,21 +77,35 @@ export default function DeliveryProgress({ current }: DeliveryProgressProps) {
                   {step.label}
                 </span>
               </div>
-              {index < steps.length - 1 && (
-                <span
-                  className={`mx-2 hidden h-px flex-1 sm:block ${
-                    index < currentIndex ? "bg-foreground/30" : "bg-border"
-                  }`}
-                  aria-hidden="true"
-                />
-              )}
+              {!isLast ? (
+                <div className="flex h-8 min-w-0 flex-1 items-center">
+                  <span
+                    className={`mx-1 h-px min-w-0 flex-1 sm:mx-2 ${
+                      index < currentIndex ? "bg-foreground/30" : "bg-border"
+                    }`}
+                    aria-hidden="true"
+                  />
+                </div>
+              ) : null}
             </li>
           );
         })}
       </ol>
-      <p className="mt-2 text-small font-medium text-accent sm:hidden">
-        {steps.find((s) => s.id === current)?.label}
-      </p>
+
+      {currentStep ? (
+        <div className="relative mt-1.5 min-h-10 w-full overflow-visible sm:hidden">
+          <span
+            className={`absolute top-0 max-w-[min(11rem,72%)] text-caption font-medium leading-tight text-accent ${getMobileLabelPosition(currentIndex, steps.length)}`}
+            style={
+              !isFirstStep && !isLastStep
+                ? { left: `${(currentIndex / (steps.length - 1)) * 100}%` }
+                : undefined
+            }
+          >
+            {currentStep.label}
+          </span>
+        </div>
+      ) : null}
     </nav>
   );
 }

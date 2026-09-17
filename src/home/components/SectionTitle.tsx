@@ -13,7 +13,7 @@ export default function SectionTitle({
 }: SectionTitleProps) {
   return (
     <h2
-      className={`text-center text-[2rem] font-bold leading-tight tracking-tight text-foreground sm:text-heading-md md:text-[2.5rem] lg:text-[2.75rem] ${className}`}
+      className={`text-center text-[1.75rem] font-bold leading-tight tracking-tight text-foreground sm:text-heading-md md:text-[2.5rem] lg:text-[2.75rem] ${className}`}
     >
       {before}
       <span className="text-accent">{highlight}</span>

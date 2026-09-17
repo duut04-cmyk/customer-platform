@@ -5,11 +5,11 @@ import { useState } from "react";
 import Footer from "@/footer";
 import Header from "@/header";
 import { AuthModal, type AuthMode } from "@/auth";
-import CTA from "./components/CTA";
-import Difference from "./components/Difference";
-import Hero from "./components/Hero";
-import HowItWorks from "./components/HowItWorks";
-import WhyDutt from "./components/WhyDutt";
+import CTA from "./CTA";
+import Difference from "./Difference";
+import Hero from "./Hero";
+import HowItWorks from "./HowItWorks";
+import WhyDutt from "./WhyDutt";
 
 function resolveAuthMode(value: string | null): AuthMode | null {
   if (value === "login" || value === "signup") {
@@ -39,7 +39,7 @@ export default function HomePage() {
   return (
     <>
       <Header onLogin={openLogin} onGetStarted={openSignup} />
-      <main>
+      <main className="overflow-x-hidden bg-hero-surface">
         <Hero onCreateDelivery={openSignup} />
         <HowItWorks />
         <WhyDutt />

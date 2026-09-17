@@ -14,6 +14,7 @@ import {
   getDefaultPackageSizeTier,
   getPackageDescriptionPlaceholder,
   getPackageSizeHelperText,
+  getPackageWeightFieldError,
   isPackageSizeTierAllowed,
   MAX_PACKAGE_DESCRIPTION_LENGTH,
   PACKAGE_LABELS,
@@ -134,6 +135,7 @@ export default function PackageStep({ data, errors, onChange }: PackageStepProps
   const showDimensions = requiresPackageDimensions(data);
   const weightRequired = requiresPackageWeight(data);
   const descriptionRequired = requiresPackageDescription(data);
+  const weightError = errors.weight ?? getPackageWeightFieldError(data);
 
   function handleCategorySelect(packageType: CategoryId) {
     const defaultTier = getDefaultPackageSizeTier(packageType);
@@ -303,9 +305,9 @@ export default function PackageStep({ data, errors, onChange }: PackageStepProps
                 placeholder={weightRequired ? "2.5" : "0.5"}
                 value={data.weight}
                 onChange={(e) => onChange({ weight: e.target.value })}
-                error={!!errors.weight}
+                error={!!weightError}
               />
-              <FieldError message={errors.weight} />
+              <FieldError message={weightError} />
             </div>
 
             {showDimensions ? (

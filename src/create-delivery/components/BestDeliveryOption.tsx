@@ -13,7 +13,6 @@ import { formatInr } from "@/deliveries/pricing";
 import type { DeliveryFormData, DeliveryRecommendation } from "../types";
 import PricingBreakdown from "./PricingBreakdown";
 import RecommendedDeliveryRoute from "./RecommendedDeliveryRoute";
-import RecommendedDriverCard from "./RecommendedDriverCard";
 
 type BestDeliveryOptionProps = {
   recommendation: DeliveryRecommendation;
@@ -30,12 +29,12 @@ type QuickInfoItemProps = {
 
 function QuickInfoItem({ icon, label, value }: QuickInfoItemProps) {
   return (
-    <div className="min-w-0 flex-1 px-3 py-1 first:pl-0 last:pr-0">
+    <div className="min-w-0 flex-1 py-3 first:pt-0 last:pb-0 sm:px-3 sm:py-1 sm:first:pl-0 sm:last:pr-0">
       <div className="flex items-center gap-1.5 text-muted-foreground">
         {icon}
         <p className="text-caption font-medium">{label}</p>
       </div>
-      <p className="mt-1 text-small font-semibold text-foreground">{value}</p>
+      <p className="mt-1 pl-5 text-small font-semibold text-foreground">{value}</p>
     </div>
   );
 }
@@ -46,7 +45,7 @@ export default function BestDeliveryOption({
   onBook,
   onBack,
 }: BestDeliveryOptionProps) {
-  const { pricing, driver } = recommendation;
+  const { pricing } = recommendation;
   const partner = getPartnerMark(recommendation.serviceName);
   const accessibleBookLabel = `Confirm and continue for ${formatInr(pricing.total)}`;
 
@@ -115,7 +114,12 @@ export default function BestDeliveryOption({
           />
         </div>
 
-        <RecommendedDriverCard driver={driver} />
+        <div className="rounded-xl border border-border bg-surface/40 p-4 md:p-5">
+          <p className="text-small font-medium text-foreground">Driver assignment</p>
+          <p className="mt-1.5 text-small leading-relaxed text-muted-foreground">
+            A driver will be assigned once your booking is confirmed.
+          </p>
+        </div>
 
         <RecommendedDeliveryRoute
           pickupAddress={formData.pickupAddress}

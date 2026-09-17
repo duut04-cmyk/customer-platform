@@ -140,7 +140,7 @@ export default function ConfirmedDeliveryOverviewCard({
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button
             type="button"
-            className="h-11 flex-1 gap-2 rounded-[6px] px-6 text-body font-semibold"
+            className="h-12! min-h-12 flex-1 gap-2 rounded-[6px] px-6 py-3 text-body font-semibold"
             onClick={() => router.push(deliveryTrackingPath(deliveryId))}
           >
             Track delivery
@@ -149,7 +149,7 @@ export default function ConfirmedDeliveryOverviewCard({
           <Button
             type="button"
             variant="secondary"
-            className="h-11 flex-1 gap-2 rounded-[6px] px-6 text-body font-semibold"
+            className="h-12! min-h-12 flex-1 gap-2 rounded-[6px] px-6 py-3 text-body font-semibold"
             onClick={() => router.push(deliveryRoutePath(deliveryId))}
           >
             <IconDocumentFilled className="h-4 w-4" />

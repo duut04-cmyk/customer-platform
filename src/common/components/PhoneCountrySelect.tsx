@@ -139,7 +139,7 @@ export default function PhoneCountrySelect({
         aria-expanded={open}
         disabled={isDisabled}
         onClick={handleToggle}
-        className="flex h-11 min-w-[3.75rem] cursor-pointer items-center gap-1.5 rounded-[4px] border border-border bg-background px-2 transition-colors hover:border-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-60"
+        className="flex h-10 min-w-[3.75rem] cursor-pointer items-center gap-1.5 rounded-[4px] border border-border bg-background px-2 transition-colors hover:border-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-60 md:h-11"
       >
         <Icon country={value} aria-hidden label={selectedOption?.label} />
         <IconChevronDown

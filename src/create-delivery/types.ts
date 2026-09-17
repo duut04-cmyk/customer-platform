@@ -25,10 +25,14 @@ export type SizePreset = {
   weight: number;
 };
 
-export const HEAVY_WEIGHT_THRESHOLD_KG = 3;
+/** Max weight (kg) for Small — matches backend deriveSizeTier. */
+export const SMALL_PACKAGE_MAX_WEIGHT_KG = 0.5;
+/** Max weight (kg) for Medium — matches backend deriveSizeTier. */
+export const MEDIUM_PACKAGE_MAX_WEIGHT_KG = 2.5;
 export const MAX_PACKAGE_DESCRIPTION_LENGTH = 200;
 
 export const MIN_PACKAGE_PHOTOS = 3;
+export const MAX_PACKAGE_PHOTOS = 5;
 
 export type Timing = "asap" | "scheduled" | "";
 
@@ -248,6 +252,30 @@ export function getPackageSizeHelperText(data: DeliveryFormData): string {
   return "Heavy or bulky items need exact size and weight so the driver can pick them up safely.";
 }
 
+export function getPackageWeightTierError(
+  tier: PackageSizeTier,
+  weightKg: number,
+): string | undefined {
+  if (tier === "small" && weightKg > SMALL_PACKAGE_MAX_WEIGHT_KG) {
+    return `Over ${SMALL_PACKAGE_MAX_WEIGHT_KG} kg — choose Medium or Large / heavy.`;
+  }
+  if (tier === "medium" && weightKg > MEDIUM_PACKAGE_MAX_WEIGHT_KG) {
+    return `Over ${MEDIUM_PACKAGE_MAX_WEIGHT_KG} kg — choose Large / heavy.`;
+  }
+  return undefined;
+}
+
+export function getPackageWeightFieldError(data: DeliveryFormData): string | undefined {
+  if (!data.weight.trim()) return undefined;
+
+  const parsedWeight = Number.parseFloat(data.weight);
+  if (Number.isNaN(parsedWeight) || parsedWeight <= 0) {
+    return "Enter a valid weight in kg.";
+  }
+
+  return getPackageWeightTierError(data.packageSizeTier, parsedWeight);
+}
+
 export function validatePackageFields(
   data: DeliveryFormData,
 ): Partial<Record<keyof DeliveryFormData, string>> {
@@ -256,6 +284,8 @@ export function validatePackageFields(
   if (!data.packageType) errors.packageType = "Select an item category.";
   if (data.packagePhotoUrls.length < MIN_PACKAGE_PHOTOS) {
     errors.packagePhotoUrls = `Add at least ${MIN_PACKAGE_PHOTOS} package photos.`;
+  } else if (data.packagePhotoUrls.length > MAX_PACKAGE_PHOTOS) {
+    errors.packagePhotoUrls = `You can upload up to ${MAX_PACKAGE_PHOTOS} package photos.`;
   }
   if (!data.packageSizeTier) {
     errors.packageSizeTier = "Select a package size.";
@@ -273,14 +303,9 @@ export function validatePackageFields(
     if (!data.height.trim()) errors.height = "Required.";
   }
 
-  const parsedWeight = Number.parseFloat(data.weight);
-  if (
-    data.packageSizeTier === "small" &&
-    data.weight.trim() &&
-    !Number.isNaN(parsedWeight) &&
-    parsedWeight > HEAVY_WEIGHT_THRESHOLD_KG
-  ) {
-    errors.weight = `Over ${HEAVY_WEIGHT_THRESHOLD_KG} kg — choose Medium or Large.`;
+  const weightError = getPackageWeightFieldError(data);
+  if (weightError) {
+    errors.weight = weightError;
   }
 
   if (requiresPackageDescription(data) && !data.packageDescription.trim()) {

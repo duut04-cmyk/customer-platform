@@ -8,6 +8,13 @@ import {
   resetPassword,
   verifyPasswordResetOtp,
 } from "@/api/auth";
+import {
+  authFormStackClassName,
+  authModalBodyClassName,
+  authModalCloseButtonClassName,
+  authModalCompactHeaderClassName,
+  authModalShellClassName,
+} from "@/auth/auth-modal-layout";
 import { getAuthErrorMessage } from "@/auth/auth-errors";
 import { validatePassword } from "@/auth/passwordPolicy";
 import Button from "@/common/components/Button";
@@ -120,21 +127,17 @@ export default function ForgotPasswordModal({
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      className="max-h-[calc(100dvh-32px)] max-w-[440px] !rounded-[4px] !p-0 overflow-y-auto md:max-w-[460px]"
-    >
-      <div className="relative px-6 py-6 md:px-8 md:py-8">
+    <Modal open={open} onClose={handleClose} className={authModalShellClassName}>
+      <div className={authModalCompactHeaderClassName}>
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
+          className={authModalCloseButtonClassName}
           aria-label="Close"
         >
           <svg
             viewBox="0 0 24 24"
-            className="h-5 w-5"
+            className="h-3 w-3"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.75"
@@ -143,9 +146,11 @@ export default function ForgotPasswordModal({
             <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
           </svg>
         </button>
+      </div>
 
+      <div className={authModalBodyClassName}>
         {step === "email" && (
-          <div className="space-y-5">
+          <div className={authFormStackClassName}>
             <div className="space-y-1 text-center">
               <h2 className="text-subheading font-bold tracking-tight text-foreground">
                 Reset your password
@@ -155,7 +160,7 @@ export default function ForgotPasswordModal({
               </p>
             </div>
 
-            <form className="space-y-4" onSubmit={handleEmailSubmit} noValidate>
+            <form className="space-y-4.5" onSubmit={handleEmailSubmit} noValidate>
               <div>
                 <label
                   htmlFor={emailId}
@@ -221,7 +226,7 @@ export default function ForgotPasswordModal({
         )}
 
         {step === "password" && (
-          <div className="space-y-5">
+          <div className={authFormStackClassName}>
             <div className="space-y-1 text-center">
               <h2 className="text-subheading font-bold tracking-tight text-foreground">
                 Create a new password
@@ -231,7 +236,7 @@ export default function ForgotPasswordModal({
               </p>
             </div>
 
-            <form className="space-y-4" onSubmit={handlePasswordSubmit} noValidate>
+            <form className="space-y-4.5" onSubmit={handlePasswordSubmit} noValidate>
               <div>
                 <label
                   htmlFor={passwordId}

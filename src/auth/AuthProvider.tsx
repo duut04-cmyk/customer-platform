@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { initializeAuth } from "@/auth/initializeAuth";
 
 type AuthProviderProps = {
@@ -8,7 +8,7 @@ type AuthProviderProps = {
 };
 
 export default function AuthProvider({ children }: AuthProviderProps) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     void initializeAuth();
   }, []);
 
