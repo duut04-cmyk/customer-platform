@@ -51,26 +51,38 @@ function DeliveriesHistoryPanelContent() {
   const isEmpty = deliveries.length === 0;
 
   return (
-    <section className="rounded-xl border border-border bg-background">
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
+    <section className="min-w-0 rounded-xl border border-border bg-background">
+      <div className="flex items-center gap-2 px-4 py-3 sm:px-5 lg:landscape:gap-3">
         <Suspense
           fallback={
-            <div className="h-10 min-w-0 flex-1 rounded-[4px] border border-border bg-white" />
+            <div className="h-10 w-full min-w-0 flex-1 rounded-[4px] border border-border bg-white lg:landscape:max-w-md xl:max-w-md" />
           }
         >
-          <DashboardSearch variant="flex" className="min-w-0 flex-1 lg:max-w-md" />
+          <DashboardSearch
+            variant="flex"
+            className="w-full min-w-0 flex-1 lg:landscape:max-w-md xl:max-w-md"
+          />
         </Suspense>
 
+        {/* Mobile + tablet portrait: calendar icon */}
         <DatePeriodSelect
           value={datePeriod}
           onChange={setDatePeriod}
-          className="ml-auto shrink-0"
+          variant="icon"
+          className="shrink-0 lg:landscape:hidden xl:hidden"
+        />
+
+        {/* Tablet landscape + desktop: labeled date dropdown */}
+        <DatePeriodSelect
+          value={datePeriod}
+          onChange={setDatePeriod}
+          className="ml-auto hidden w-[11.5rem] shrink-0 lg:landscape:block xl:block"
         />
       </div>
 
-      <div className="overflow-x-auto px-4 pb-3 sm:px-5">
+      <div className="max-w-full overflow-x-auto px-4 pb-3 sm:px-5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
         <div
-          className="flex min-w-0 gap-2 pb-1"
+          className="mb-2.5 flex min-w-0 gap-2"
           role="tablist"
           aria-label="Filter deliveries"
         >
@@ -85,7 +97,7 @@ function DeliveriesHistoryPanelContent() {
                 role="tab"
                 aria-selected={selected}
                 onClick={() => setFilter(option.id)}
-                className={`shrink-0 cursor-pointer rounded-pill border px-3 py-1.5 text-small font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`shrink-0 cursor-pointer rounded-[5px] border px-3 py-1.5 text-small font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   selected
                     ? "border-accent bg-accent text-white"
                     : "border-slate-200 bg-background text-muted-foreground hover:border-foreground/20 hover:text-foreground"

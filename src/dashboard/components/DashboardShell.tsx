@@ -28,7 +28,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           mobileOpen={mobileNavOpen}
           onMobileClose={() => setMobileNavOpen(false)}
         />
-        <div className="flex min-w-0 flex-1 flex-col bg-white lg:ml-60">
+        <div className="flex min-w-0 flex-1 flex-col bg-white xl:ml-60">
           {!usesInPageHeader && (
             <DashboardTopHeader onMenuClick={() => setMobileNavOpen(true)} />
           )}

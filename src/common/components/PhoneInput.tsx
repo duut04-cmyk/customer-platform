@@ -5,7 +5,7 @@ import PhoneInputLib from "react-phone-number-input";
 import PhoneCountrySelect from "./PhoneCountrySelect";
 
 const phoneInputClasses =
-  "w-full h-11 min-w-0 flex-1 px-4 text-body bg-background text-foreground border border-border rounded-[4px] placeholder:text-muted-foreground transition-colors duration-150 hover:border-foreground/25 focus:border-foreground focus:ring-1 focus:ring-foreground/10 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-60";
+  "w-full h-10 min-w-0 flex-1 px-3.5 text-small bg-background text-foreground border border-border rounded-[4px] placeholder:text-muted-foreground transition-colors duration-150 hover:border-foreground/25 focus:border-foreground focus:ring-1 focus:ring-foreground/10 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-60 md:h-11 md:px-4 md:text-body";
 
 const PhoneTextInput = forwardRef<
   HTMLInputElement,

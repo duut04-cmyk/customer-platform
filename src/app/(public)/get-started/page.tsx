@@ -1,10 +1,15 @@
-import { Suspense } from "react";
-import GetStartedPage from "@/auth/components/GetStartedPage";
+import { redirect } from "next/navigation";
 
-export default function GetStartedRoute() {
-  return (
-    <Suspense fallback={null}>
-      <GetStartedPage />
-    </Suspense>
-  );
+type GetStartedPageProps = {
+  searchParams: Promise<{ mode?: string; next?: string }>;
+};
+
+export default async function GetStartedRoute({ searchParams }: GetStartedPageProps) {
+  const params = await searchParams;
+  const mode = params.mode === "login" ? "login" : "signup";
+  const query = new URLSearchParams({ auth: mode });
+  if (params.next) {
+    query.set("next", params.next);
+  }
+  redirect(`/?${query.toString()}`);
 }

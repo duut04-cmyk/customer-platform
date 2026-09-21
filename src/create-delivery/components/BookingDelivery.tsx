@@ -1,5 +1,6 @@
 "use client";
 
+import { CREATE_DELIVERY_GRID } from "@/dashboard/components/layout";
 import { useCallback, useEffect, useState } from "react";
 import type { DeliveryFormData, DeliveryRecommendation } from "../types";
 import BookingProgressStepper from "./BookingProgressStepper";
@@ -60,7 +61,7 @@ export default function BookingDelivery({
     <div className="space-y-5">
       <BookingServiceSummaryCard recommendation={recommendation} formData={formData} />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <div className={`grid gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}>
         <section
           className="overflow-hidden rounded-xl border border-border bg-background shadow-sm"
           aria-label="Booking progress"

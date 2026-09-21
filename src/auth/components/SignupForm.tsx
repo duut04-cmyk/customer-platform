@@ -2,17 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent } from "react";
+import { toast } from "sonner";
+import { login, resendEmailOtp, signup, verifyEmailOtp } from "@/api/auth";
+import { getAuthErrorMessage } from "@/auth/auth-errors";
+import { establishSession } from "@/auth/establishSession";
+import { mapE164ToSplitPhoneFields } from "@/auth/phone-mapper";
+import { validatePassword } from "@/auth/passwordPolicy";
 import Button from "@/common/components/Button";
 import Input from "@/common/components/Input";
-import { mockNavigateToDashboard } from "@/auth/mockAuth";
+import PhoneInput from "@/common/components/PhoneInput";
 import AuthDivider from "./AuthDivider";
-import CaptchaPlaceholder from "./CaptchaPlaceholder";
 import GoogleButton from "./GoogleButton";
 import { LoadingSpinner } from "./icons";
 import PasswordInput from "./PasswordInput";
+import VerifyEmailOtpForm from "./VerifyEmailOtpForm";
 
 type SignupFormProps = {
   onSwitchToLogin: () => void;
+  onAuthSuccess?: () => void;
   redirectTo?: string;
 };
 
@@ -24,8 +31,11 @@ type FieldErrors = {
   terms?: string;
 };
 
+type SignupStep = "details" | "verify-otp";
+
 export default function SignupForm({
   onSwitchToLogin,
+  onAuthSuccess,
   redirectTo = "/dashboard",
 }: SignupFormProps) {
   const router = useRouter();
@@ -34,6 +44,10 @@ export default function SignupForm({
   const phoneId = useId();
   const passwordId = useId();
   const termsId = useId();
+  const [step, setStep] = useState<SignupStep>("details");
+  const [phone, setPhone] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -44,7 +58,6 @@ export default function SignupForm({
     const formData = new FormData(event.currentTarget);
     const name = String(formData.get("name") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
-    const phone = String(formData.get("phone") ?? "").trim();
     const password = String(formData.get("password") ?? "").trim();
     const terms = formData.get("terms") === "on";
 
@@ -53,6 +66,10 @@ export default function SignupForm({
     if (!email) nextErrors.email = "This field is required.";
     if (!phone) nextErrors.phone = "This field is required.";
     if (!password) nextErrors.password = "This field is required.";
+    if (password) {
+      const passwordError = validatePassword(password);
+      if (passwordError) nextErrors.password = passwordError;
+    }
     if (!terms) nextErrors.terms = "You must agree to the terms.";
 
     setErrors(nextErrors);
@@ -60,19 +77,69 @@ export default function SignupForm({
 
     setLoading(true);
     try {
-      await mockNavigateToDashboard(router, redirectTo);
+      const { phoneCountryCode, phoneNumber } = mapE164ToSplitPhoneFields(phone);
+      await signup({
+        name,
+        email,
+        password,
+        phoneCountryCode,
+        phoneNumber,
+      });
+      setSignupEmail(email);
+      setSignupPassword(password);
+      setStep("verify-otp");
+      toast.success("Verification code sent. Check your email.");
+    } catch (cause) {
+      toast.error(getAuthErrorMessage(cause, "Unable to create account."));
     } finally {
       setLoading(false);
     }
   };
 
+  if (step === "verify-otp") {
+    return (
+      <VerifyEmailOtpForm
+        email={signupEmail}
+        onBack={() => setStep("details")}
+        onVerified={async () => {
+          try {
+            const response = await login({
+              email: signupEmail,
+              password: signupPassword,
+            });
+            establishSession(response.data, response.data.user);
+            setSignupPassword("");
+            onAuthSuccess?.();
+            router.push(redirectTo);
+            toast.success("Welcome! Your account is ready.");
+          } catch (cause) {
+            setSignupPassword("");
+            toast.error(
+              getAuthErrorMessage(cause, "Email verified. Please sign in to continue."),
+            );
+            onSwitchToLogin();
+          }
+        }}
+        verifyHandler={async (email, otp) => {
+          await verifyEmailOtp({ email, otp });
+        }}
+        resendHandler={async (email) => {
+          await resendEmailOtp({ email });
+        }}
+      />
+    );
+  }
+
+  const fieldLabelClassName = "mb-1 block text-small font-medium text-foreground";
+  const fieldErrorClassName = "mt-1 text-caption text-foreground";
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-1 text-center">
-        <h2 className="text-subheading font-bold tracking-tight text-foreground">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="space-y-0.5 text-center sm:space-y-1">
+        <h2 className="text-heading font-bold tracking-tight text-foreground sm:text-subheading">
           Create your account
         </h2>
-        <p className="text-small text-muted-foreground">
+        <p className="text-caption text-muted-foreground sm:text-small">
           Send deliveries without the hassle.
         </p>
       </div>
@@ -81,12 +148,13 @@ export default function SignupForm({
 
       <AuthDivider />
 
-      <form className="space-y-3.5" onSubmit={handleSubmit} noValidate>
+      <form
+        className="grid grid-cols-1 gap-y-3 sm:gap-y-3.5"
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <div>
-          <label
-            htmlFor={nameId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={nameId} className={fieldLabelClassName}>
             Full name
           </label>
           <Input
@@ -98,17 +166,14 @@ export default function SignupForm({
             autoComplete="name"
           />
           {errors.name && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.name}
             </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor={emailId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={emailId} className={fieldLabelClassName}>
             Email
           </label>
           <Input
@@ -120,39 +185,33 @@ export default function SignupForm({
             autoComplete="email"
           />
           {errors.email && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.email}
             </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor={phoneId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={phoneId} className={fieldLabelClassName}>
             Phone number
           </label>
-          <Input
+          <PhoneInput
             id={phoneId}
             name="phone"
-            type="tel"
-            placeholder="+91 XXXXX XXXXX"
+            value={phone}
+            onChange={setPhone}
             error={!!errors.phone}
-            autoComplete="tel"
+            placeholder="Enter phone number"
           />
           {errors.phone && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.phone}
             </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor={passwordId}
-            className="mb-1.5 block text-small font-medium text-foreground"
-          >
+          <label htmlFor={passwordId} className={fieldLabelClassName}>
             Password
           </label>
           <PasswordInput
@@ -163,26 +222,21 @@ export default function SignupForm({
             autoComplete="new-password"
           />
           {errors.password && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.password}
             </p>
           )}
         </div>
 
         <div>
-          <p className="mb-1.5 text-small font-medium text-foreground">CAPTCHA</p>
-          <CaptchaPlaceholder />
-        </div>
-
-        <div>
-          <label htmlFor={termsId} className="flex cursor-pointer items-start gap-2.5">
+          <label htmlFor={termsId} className="flex cursor-pointer items-start gap-2">
             <input
               id={termsId}
               name="terms"
               type="checkbox"
-              className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+              className="auth-checkbox mt-0.5"
             />
-            <span className="text-small leading-snug text-muted-foreground">
+            <span className="text-caption leading-snug text-muted-foreground sm:text-small">
               I agree to Doot&apos;s{" "}
               <a
                 href="#"
@@ -202,30 +256,32 @@ export default function SignupForm({
             </span>
           </label>
           {errors.terms && (
-            <p className="mt-1.5 text-caption text-foreground" role="alert">
+            <p className={fieldErrorClassName} role="alert">
               {errors.terms}
             </p>
           )}
         </div>
 
-        <Button
-          type="submit"
-          className="h-11 w-full gap-2 text-body font-semibold"
-          disabled={loading}
-          aria-busy={loading}
-        >
-          {loading ? (
-            <>
-              <LoadingSpinner />
-              Creating account...
-            </>
-          ) : (
-            "Create account"
-          )}
-        </Button>
+        <div>
+          <Button
+            type="submit"
+            className="h-11 w-full gap-2 rounded-[6px] text-body font-semibold"
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
+          </Button>
+        </div>
       </form>
 
-      <p className="text-center text-small text-muted-foreground">
+      <p className="text-center text-caption text-muted-foreground sm:text-small">
         Already have an account?{" "}
         <button
           type="button"

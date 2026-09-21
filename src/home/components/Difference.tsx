@@ -38,26 +38,29 @@ function ComparisonCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl p-6 md:p-8 md:pb-0 md:pr-0 ${
+      className={`relative flex flex-col overflow-hidden rounded-3xl p-4 sm:p-5 lg:min-h-[300px] lg:p-6 lg:pb-0 lg:pr-0 xl:min-h-0 xl:p-8 ${
         isDutt ? "bg-surface-accent" : "bg-surface"
       }`}
     >
-      <div className="relative z-10 pb-6 md:max-w-[42%] md:pr-8 md:pb-8">
-        <h3 className="text-xl font-bold text-foreground md:text-2xl">
+      <div className="relative z-10 shrink-0 lg:max-w-[54%] lg:pr-4 lg:pb-6 xl:max-w-[42%] xl:pr-8 xl:pb-8">
+        <h3 className="text-base font-bold text-foreground sm:text-lg lg:whitespace-nowrap lg:text-lg xl:text-2xl">
           {title}
           {titleHighlight && <span className="text-accent">{titleHighlight}</span>}
           {isDutt ? " way" : ""}
         </h3>
 
-        <ul className="mt-5 space-y-3.5">
+        <ul className="mt-3 space-y-1.5 sm:mt-4 sm:space-y-2 lg:mt-4 lg:space-y-2.5 xl:mt-5 xl:space-y-3.5">
           {items.map((item) => (
-            <li key={item} className="flex items-center gap-3.5">
+            <li
+              key={item}
+              className="flex items-start gap-2 sm:gap-2.5 lg:items-center lg:gap-2.5 xl:gap-3.5"
+            >
               {isDutt ? (
-                <CheckCircleIcon className="h-7 w-7 shrink-0 text-accent" />
+                <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-accent sm:h-6 sm:w-6 lg:mt-0 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
               ) : (
-                <XCircleIcon className="h-7 w-7 shrink-0" />
+                <XCircleIcon className="mt-0.5 h-5 w-5 shrink-0 sm:h-6 sm:w-6 lg:mt-0 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
               )}
-              <span className="text-body font-semibold leading-snug text-muted-foreground">
+              <span className="text-[0.8125rem] font-semibold leading-snug text-muted-foreground sm:text-small lg:text-small xl:text-body">
                 {item}
               </span>
             </li>
@@ -65,12 +68,12 @@ function ComparisonCard({
         </ul>
       </div>
 
-      <div className="relative mx-auto mt-6 h-[220px] w-full max-w-[320px] md:absolute md:bottom-0 md:right-0 md:top-12 md:mt-0 md:h-auto md:w-[68%] md:max-w-none">
+      <div className="pointer-events-none relative hidden w-full shrink-0 lg:absolute lg:bottom-0 lg:right-0 lg:top-14 lg:block lg:h-auto lg:w-[46%] lg:max-w-none xl:top-12 xl:w-[68%]">
         <Image
           src={imageSrc}
           alt={imageAlt}
           fill
-          sizes="(max-width: 768px) 320px, 68vw"
+          sizes="(max-width: 1279px) 22vw, 34vw"
           className="object-contain object-bottom object-right"
         />
       </div>
@@ -80,11 +83,11 @@ function ComparisonCard({
 
 export default function Difference() {
   return (
-    <section className="bg-background py-10 md:py-14">
+    <section id="about" className="scroll-mt-20 py-5 sm:py-6 md:py-8 lg:py-12 xl:py-14">
       <div className="site-content">
         <SectionTitle before="The " highlight="Doot" after=" difference" />
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-2 lg:gap-6">
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:mt-6 md:mt-6 md:grid-cols-2 md:items-stretch md:gap-4 lg:mt-8 lg:gap-6">
           <ComparisonCard
             title="The traditional way"
             items={traditionalItems}

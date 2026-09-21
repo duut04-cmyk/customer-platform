@@ -59,7 +59,7 @@ function AddressField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           error={!!error}
-          className="pl-11"
+          className="pl-10! md:pl-11!"
         />
       </div>
       <button

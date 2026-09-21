@@ -23,24 +23,27 @@ const benefits = [
 
 export default function WhyDutt() {
   return (
-    <section id="for-businesses" className="bg-background py-10 md:py-14">
+    <section
+      id="for-businesses"
+      className="scroll-mt-20 py-5 sm:py-6 md:py-8 lg:py-12 xl:py-14"
+    >
       <div className="site-content">
         <SectionTitle before="Why choose " highlight="Doot" after="?" />
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:mt-6 md:mt-6 md:grid-cols-3 md:gap-3 lg:mt-8 lg:gap-4 xl:gap-8">
           {benefits.map((benefit) => (
             <div
               key={benefit.title}
-              className="flex gap-5 rounded-2xl border border-border/80 bg-background p-6 sm:p-8"
+              className="flex flex-col items-center gap-2.5 rounded-2xl border border-border/80 bg-background p-4 text-center md:p-4 lg:gap-3 lg:p-5 xl:flex-row xl:items-start xl:gap-5 xl:p-8 xl:text-left"
             >
               <div className="shrink-0 text-accent">
-                <benefit.Icon className="h-14 w-14" />
+                <benefit.Icon className="h-9 w-9 md:h-10 md:w-10 lg:h-11 lg:w-11 xl:h-14 xl:w-14" />
               </div>
-              <div>
-                <h3 className="text-body-lg font-bold text-foreground">
+              <div className="min-w-0">
+                <h3 className="text-small font-bold text-foreground md:text-body lg:whitespace-nowrap xl:whitespace-normal xl:text-body-lg">
                   {benefit.title}
                 </h3>
-                <p className="mt-3 text-body font-medium leading-relaxed text-foreground/65">
+                <p className="mt-1 text-caption font-medium leading-snug text-foreground/65 lg:mt-1.5 lg:text-small xl:mt-2 xl:text-body xl:leading-relaxed">
                   {benefit.description}
                 </p>
               </div>

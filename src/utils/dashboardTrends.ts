@@ -16,6 +16,12 @@ export function formatTrendLine(trend: DashboardTrend): string {
   return `${arrow} ${trend.percent}% vs. last 7 days`;
 }
 
+/** Compact trend for tight mobile cells. */
+export function formatTrendLineShort(trend: DashboardTrend): string {
+  const arrow = trend.direction === "up" ? "↑" : "↓";
+  return `${arrow} ${trend.percent}%`;
+}
+
 export const DASHBOARD_TRENDS: DashboardTrends = {
   total: { direction: "up", percent: 25, tone: "green" },
   completed: { direction: "up", percent: 40, tone: "green" },

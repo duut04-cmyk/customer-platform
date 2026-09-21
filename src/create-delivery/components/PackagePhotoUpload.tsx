@@ -2,7 +2,7 @@
 
 import { useId, useRef } from "react";
 import { IconCamera } from "@/dashboard/components/icons";
-import { MIN_PACKAGE_PHOTOS } from "../types";
+import { MAX_PACKAGE_PHOTOS, MIN_PACKAGE_PHOTOS } from "../types";
 
 type PackagePhotoUploadProps = {
   value: string[];
@@ -27,8 +27,11 @@ export default function PackagePhotoUpload({
     const files = event.target.files;
     if (!files?.length) return;
 
+    const remaining = MAX_PACKAGE_PHOTOS - value.length;
+    if (remaining <= 0) return;
+
     const newUrls = [...value];
-    for (const file of Array.from(files)) {
+    for (const file of Array.from(files).slice(0, remaining)) {
       newUrls.push(URL.createObjectURL(file));
     }
     onChange(newUrls);
@@ -45,12 +48,13 @@ export default function PackagePhotoUpload({
   };
 
   const photosNeeded = Math.max(0, MIN_PACKAGE_PHOTOS - value.length);
-  const canAddMore = value.length < MIN_PACKAGE_PHOTOS;
-  const emptySlotCount = canAddMore ? photosNeeded : 0;
+  const showEmptySlots = value.length < MIN_PACKAGE_PHOTOS;
+  const emptySlotCount = showEmptySlots ? photosNeeded : 0;
+  const canAddMore = value.length < MAX_PACKAGE_PHOTOS;
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {value.map((url, index) => (
           <div
             key={`${url}-${index}`}
@@ -73,7 +77,7 @@ export default function PackagePhotoUpload({
           </div>
         ))}
 
-        {canAddMore &&
+        {showEmptySlots &&
           Array.from({ length: emptySlotCount }).map((_, slotIndex) => {
             const isFirstSlot = value.length === 0 && slotIndex === 0;
             return (
@@ -101,7 +105,7 @@ export default function PackagePhotoUpload({
           })}
       </div>
 
-      {value.length >= MIN_PACKAGE_PHOTOS && (
+      {value.length >= MIN_PACKAGE_PHOTOS && canAddMore && (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ChangeEventHandler } from "react";
 import Input from "@/common/components/Input";
 import { EyeClosedIcon, EyeOpenIcon } from "./icons";
 
@@ -10,6 +10,8 @@ type PasswordInputProps = {
   placeholder: string;
   error?: boolean;
   autoComplete?: string;
+  value?: string;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 
 export default function PasswordInput({
@@ -18,6 +20,8 @@ export default function PasswordInput({
   placeholder,
   error = false,
   autoComplete = "current-password",
+  value,
+  onChange,
 }: PasswordInputProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
@@ -33,6 +37,8 @@ export default function PasswordInput({
         error={error}
         autoComplete={autoComplete}
         className="pr-11"
+        value={value}
+        onChange={onChange}
       />
       <button
         type="button"

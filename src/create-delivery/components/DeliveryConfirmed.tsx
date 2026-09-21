@@ -1,5 +1,6 @@
 "use client";
 
+import { CREATE_DELIVERY_GRID } from "@/dashboard/components/layout";
 import type { BookingResult, DeliveryFormData } from "../types";
 import ConfirmedDeliveryOverviewCard from "./ConfirmedDeliveryOverviewCard";
 import ConfirmedDeliverySummaryCard from "./ConfirmedDeliverySummaryCard";
@@ -40,7 +41,7 @@ export default function DeliveryConfirmed({
   const { recommendation } = booking;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+    <div className={`grid gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}>
       <div className="flex flex-col gap-4">
         <ConfirmedDeliveryOverviewCard booking={booking} formData={formData} />
         <RecommendedDriverCard driver={recommendation.driver} />

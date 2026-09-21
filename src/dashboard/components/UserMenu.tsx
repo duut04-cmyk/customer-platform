@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ACCOUNT_SETTINGS_PATH } from "@/account/paths";
+import { performLogout } from "@/auth/logout";
+import { getUserInitials } from "@/auth/user-display";
 import Button from "@/common/components/Button";
 import { HELP_SUPPORT_PATH } from "@/help/paths";
+import { useAuthStore } from "@/stores/auth.store";
 
 function UserChevron({ open }: { open: boolean }) {
   return (
@@ -28,7 +31,9 @@ type UserMenuProps = {
 export default function UserMenu({ compact = false }: UserMenuProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const user = useAuthStore((state) => state.user);
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,10 +58,22 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
     };
   }, [open]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
     setOpen(false);
-    router.push("/");
+    try {
+      await performLogout(router);
+    } finally {
+      setLoggingOut(false);
+    }
   };
+
+  if (!user) {
+    return null;
+  }
+
+  const initials = getUserInitials(user.name);
 
   return (
     <div className="relative" ref={menuRef}>
@@ -73,11 +90,11 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[13px] font-semibold leading-none text-accent-foreground"
             aria-hidden="true"
           >
-            JD
+            {initials}
           </span>
           {!compact && (
             <span className="hidden max-w-[7rem] truncate text-small font-medium text-foreground sm:inline sm:max-w-none sm:overflow-visible sm:whitespace-nowrap">
-              John Doe
+              {user.name}
             </span>
           )}
         </span>
@@ -90,8 +107,8 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
           className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 rounded-xl border border-border bg-background p-2 shadow-md"
         >
           <div className="border-b border-border px-3 py-3">
-            <p className="text-body font-semibold text-foreground">John Doe</p>
-            <p className="mt-0.5 text-small text-muted-foreground">john@example.com</p>
+            <p className="text-body font-semibold text-foreground">{user.name}</p>
+            <p className="mt-0.5 text-small text-muted-foreground">{user.email}</p>
           </div>
           <div className="py-1">
             <button
@@ -131,8 +148,10 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
               variant="secondary"
               className="h-10 w-full text-small font-semibold"
               onClick={handleLogout}
+              disabled={loggingOut}
+              aria-busy={loggingOut}
             >
-              Log out
+              {loggingOut ? "Logging out..." : "Log out"}
             </Button>
           </div>
         </div>

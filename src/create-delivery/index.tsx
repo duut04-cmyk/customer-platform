@@ -3,14 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import CreateDeliveryPageTopSection from "./components/CreateDeliveryPageTopSection";
 import SafetyComplianceCard from "@/dashboard/components/SafetyComplianceCard";
-import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
-import BestDeliveryOption, {
-  BestDeliveryOptionHeader,
-} from "./components/BestDeliveryOption";
-import BackToDeliveryOptionLink from "./components/BackToDeliveryOptionLink";
+import { CREATE_DELIVERY_GRID, DASHBOARD_MAIN } from "@/dashboard/components/layout";
+import BestDeliveryOption from "./components/BestDeliveryOption";
 import BookingDelivery, { BookingDeliveryHeader } from "./components/BookingDelivery";
 import ConsentStep, { validateConsentStep } from "./components/ConsentStep";
-import CreateDeliveryBackLink from "./components/CreateDeliveryBackLink";
+import CreateDeliveryFlowPageHeader from "./components/CreateDeliveryFlowPageHeader";
 import DeliveryConfirmed, {
   DeliveryConfirmedHeader,
 } from "./components/DeliveryConfirmed";
@@ -163,10 +160,6 @@ export default function CreateDelivery() {
     setStep("review");
   };
 
-  const handleBackToBestOption = () => {
-    setStep("best_option");
-  };
-
   const handleEditStep = (nextStep: FormStep, focus?: "pickup" | "dropoff") => {
     setPickupFocus(focus ?? null);
     setStep(nextStep);
@@ -179,6 +172,12 @@ export default function CreateDelivery() {
     step === "requirements" ||
     step === "consent";
   const showFormLayout = !isPostReviewStep(step);
+  const showCreateDeliveryTopSection =
+    showFormLayout ||
+    step === "booking" ||
+    step === "confirmed" ||
+    step === "best_option";
+  const showCreateDeliveryTitle = showFormLayout;
 
   const continueDisabled = (() => {
     if (step === "pickup") {
@@ -241,19 +240,23 @@ export default function CreateDelivery() {
   );
 
   return (
-    <main className={`${DASHBOARD_MAIN} bg-white`}>
-      <div className="space-y-4 lg:space-y-5">
-        <CreateDeliveryPageTopSection showHeader={showFormLayout} />
+    <main className={`${DASHBOARD_MAIN} min-w-0 overflow-x-hidden bg-white`}>
+      <div className="min-w-0 space-y-4 lg:space-y-5">
+        {showCreateDeliveryTopSection ? (
+          <CreateDeliveryPageTopSection showHeader={showCreateDeliveryTitle} />
+        ) : null}
 
         {showFormLayout && (
-          <div className="mt-6 space-y-4 lg:mt-8 lg:space-y-5">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_1fr] lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="mt-6 min-w-0 space-y-4 lg:mt-8 lg:space-y-5">
+            <div
+              className={`grid min-w-0 w-full max-w-full gap-4 xl:grid-rows-[auto_1fr] xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}
+            >
               {showProgress ? (
-                <div className="lg:col-start-1 lg:row-start-1">
+                <div className="min-w-0 w-full max-w-full overflow-visible xl:col-start-1 xl:row-start-1">
                   <DeliveryProgress current={step} />
                 </div>
               ) : null}
-              <div className="rounded-xl border border-border bg-background p-5 shadow-sm md:p-6 lg:col-start-1 lg:row-start-2">
+              <div className="min-w-0 rounded-xl border border-border bg-background p-4 shadow-sm sm:p-5 md:p-6 xl:col-start-1 xl:row-start-2">
                 {stepContent}
                 {showStepNav && (
                   <StepNavigation
@@ -266,58 +269,80 @@ export default function CreateDelivery() {
                 )}
               </div>
 
-              <aside className="flex flex-col gap-4 lg:col-start-2 lg:row-start-2">
+              <aside className="flex min-w-0 w-full max-w-full flex-col gap-3 sm:gap-4 xl:col-start-2 xl:row-start-2">
                 <YourDeliverySummaryCard
                   data={data}
                   currentStep={isProgressStep(step) ? step : undefined}
                 />
-                <SafetyComplianceCard variant="create" />
+                <SafetyComplianceCard variant="create" className="p-3 sm:p-4" />
               </aside>
             </div>
           </div>
         )}
 
         {step === "finding" && (
-          <div className="space-y-5">
-            <CreateDeliveryBackLink />
+          <div className="space-y-6 lg:space-y-8">
+            <CreateDeliveryFlowPageHeader
+              title={
+                data.timing === "scheduled"
+                  ? "When should we deliver?"
+                  : "Finding the best delivery option"
+              }
+              subtitle={
+                data.timing === "scheduled"
+                  ? "You've selected a delivery time slot. Now we're finding the best available service for your request."
+                  : "Doot is checking available delivery services based on price, delivery time, package compatibility, and your requirements."
+              }
+              showBackToDashboard={false}
+            />
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div
+              className={`grid min-w-0 w-full max-w-full gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}
+            >
               <FindingDelivery
                 data={data}
                 onComplete={handleFindingComplete}
                 onEdit={handleEditStep}
               />
-              <aside className="flex flex-col gap-4">
+              <aside className="flex min-w-0 w-full max-w-full flex-col gap-3 sm:gap-4">
                 <FindingTimeSlotCard data={data} />
                 <FindingDeliverySummaryCard data={data} />
-                <SafetyComplianceCard variant="create" />
+                <SafetyComplianceCard variant="create" className="p-3 sm:p-4" />
               </aside>
             </div>
           </div>
         )}
 
         {step === "best_option" && recommendation && (
-          <div className="space-y-5">
-            <CreateDeliveryBackLink />
-            <BestDeliveryOptionHeader />
+          <div className="mt-6 space-y-6 lg:mt-8 lg:space-y-8">
+            <div className="space-y-1">
+              <h1 className="text-heading font-bold tracking-tight text-foreground">
+                Best delivery option
+              </h1>
+              <p className="text-body text-muted-foreground">
+                We found the best available option based on price, delivery time,
+                availability, and your requirements.
+              </p>
+            </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div
+              className={`grid min-w-0 w-full max-w-full gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}
+            >
               <BestDeliveryOption
                 recommendation={recommendation}
                 formData={data}
                 onBook={handleBookDelivery}
                 onBack={handleBackToReview}
               />
-              <aside className="flex flex-col gap-4">
+              <aside className="flex min-w-0 w-full max-w-full flex-col gap-3 sm:gap-4">
                 <YourDeliverySummaryCard data={data} currentStep="review" />
-                <SafetyComplianceCard variant="create" />
+                <SafetyComplianceCard variant="create" className="p-3 sm:p-4" />
               </aside>
             </div>
           </div>
         )}
         {step === "booking" && recommendation && (
-          <div className="space-y-5">
-            <BackToDeliveryOptionLink onClick={handleBackToBestOption} />
+          <div className="mt-6 space-y-5 lg:mt-8">
             <BookingDeliveryHeader />
             <BookingDelivery
               recommendation={recommendation}
@@ -327,8 +352,7 @@ export default function CreateDelivery() {
           </div>
         )}
         {step === "confirmed" && booking && (
-          <div className="space-y-5">
-            <CreateDeliveryBackLink />
+          <div className="mt-6 space-y-5 lg:mt-8">
             <DeliveryConfirmedHeader />
             <DeliveryConfirmed booking={booking} formData={data} />
           </div>
