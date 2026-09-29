@@ -27,7 +27,10 @@ function PackageIllustration() {
 }
 
 export default function LiveTrackingCard({ delivery }: LiveTrackingCardProps) {
-  const showMap = delivery.status !== "booked" && Boolean(delivery.driver);
+  const showMap =
+    delivery.status !== "booked" &&
+    (Boolean(delivery.driver) ||
+      (delivery.trackingLatitude != null && delivery.trackingLongitude != null));
 
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">

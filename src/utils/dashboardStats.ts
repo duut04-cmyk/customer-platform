@@ -1,4 +1,3 @@
-import { MOCK_DELIVERIES } from "@/deliveries/mockDeliveries";
 import type { Delivery, DeliveryStatus } from "@/deliveries/types";
 
 const IN_TRANSIT_STATUSES: DeliveryStatus[] = [
@@ -6,6 +5,8 @@ const IN_TRANSIT_STATUSES: DeliveryStatus[] = [
   "picked_up",
   "driver_assigned",
   "booked",
+  "pickup_otp_pending",
+  "delivery_otp_pending",
 ];
 
 export type DashboardCounts = {
@@ -17,16 +18,7 @@ export type DashboardCounts = {
   cancelled: number;
 };
 
-export type DashboardPerformance = {
-  onTimePercent: number;
-  avgDeliveryTime: string;
-  successfulBookings: string;
-  availabilityPercent: number;
-};
-
-export function getDashboardCounts(
-  deliveries: Delivery[] = MOCK_DELIVERIES,
-): DashboardCounts {
+export function getDashboardCounts(deliveries: Delivery[] = []): DashboardCounts {
   const completed = deliveries.filter((d) => d.status === "delivered").length;
   const inTransit = deliveries.filter((d) =>
     IN_TRANSIT_STATUSES.includes(d.status),
@@ -44,15 +36,8 @@ export function getDashboardCounts(
   };
 }
 
-export const DASHBOARD_PERFORMANCE: DashboardPerformance = {
-  onTimePercent: 90,
-  avgDeliveryTime: "2.2 hr",
-  successfulBookings: "9/10",
-  availabilityPercent: 63,
-};
-
 export function getFilterCounts(
-  deliveries: Delivery[] = MOCK_DELIVERIES,
+  deliveries: Delivery[] = [],
 ): Record<"all" | "in_transit" | "delivered" | "failed" | "cancelled", number> {
   const counts = getDashboardCounts(deliveries);
   return {
@@ -71,6 +56,7 @@ export function searchDeliveries(deliveries: Delivery[], query: string): Deliver
   return deliveries.filter(
     (d) =>
       d.id.toLowerCase().includes(q) ||
+      (d.reference?.toLowerCase().includes(q) ?? false) ||
       d.pickup.city.toLowerCase().includes(q) ||
       d.dropoff.city.toLowerCase().includes(q) ||
       d.pickup.address.toLowerCase().includes(q) ||

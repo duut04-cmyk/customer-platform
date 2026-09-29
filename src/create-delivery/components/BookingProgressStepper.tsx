@@ -5,7 +5,7 @@ import { IconCheck, IconTruck } from "@/dashboard/components/icons";
 const bookingSteps = [
   "Delivery option selected",
   "Price confirmed",
-  "Booking delivery service",
+  "Secure payment",
   "Confirming delivery partner",
 ] as const;
 

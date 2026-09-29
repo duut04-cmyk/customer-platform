@@ -8,22 +8,26 @@ import { CANCEL_DELIVERY_REASONS, type CancelDeliveryReason } from "../../custom
 type CancelDeliveryModalProps = {
   open: boolean;
   onClose: () => void;
-  onConfirm: (reason: string) => void;
+  onConfirm: (reason: CancelDeliveryReason, otherText?: string) => void;
+  confirming?: boolean;
 };
 
 export default function CancelDeliveryModal({
   open,
   onClose,
   onConfirm,
+  confirming = false,
 }: CancelDeliveryModalProps) {
   const [selectedReason, setSelectedReason] = useState<CancelDeliveryReason | "">("");
   const [otherReason, setOtherReason] = useState("");
 
   const handleConfirm = () => {
-    const reason =
-      selectedReason === "Other" ? otherReason.trim() || "Other" : selectedReason;
-    if (!reason) return;
-    onConfirm(reason);
+    if (!selectedReason) return;
+    if (selectedReason === "Other") {
+      onConfirm("Other", otherReason.trim() || undefined);
+    } else {
+      onConfirm(selectedReason);
+    }
     setSelectedReason("");
     setOtherReason("");
   };
@@ -93,10 +97,10 @@ export default function CancelDeliveryModal({
           <Button
             type="button"
             className="h-10 rounded-[6px] bg-red-600 px-5 text-small font-semibold hover:bg-red-700"
-            disabled={!canConfirm}
+            disabled={!canConfirm || confirming}
             onClick={handleConfirm}
           >
-            Cancel delivery
+            {confirming ? "Cancelling…" : "Cancel delivery"}
           </Button>
         </div>
       </div>

@@ -61,6 +61,7 @@ export default function AuthModal({
         {mode === "login" && (
           <LoginForm
             onSwitchToSignup={() => onSwitchMode("signup")}
+            onAuthSuccess={onClose}
             redirectTo={redirectTo}
           />
         )}

@@ -17,6 +17,7 @@ import PasswordInput from "./PasswordInput";
 
 type LoginFormProps = {
   onSwitchToSignup: () => void;
+  onAuthSuccess?: () => void;
   redirectTo?: string;
 };
 
@@ -27,6 +28,7 @@ type FieldErrors = {
 
 export default function LoginForm({
   onSwitchToSignup,
+  onAuthSuccess,
   redirectTo = "/dashboard",
 }: LoginFormProps) {
   const router = useRouter();
@@ -55,7 +57,8 @@ export default function LoginForm({
     try {
       const response = await login({ email, password });
       establishSession(response.data, response.data.user);
-      router.push(redirectTo);
+      onAuthSuccess?.();
+      router.replace(redirectTo);
       toast.success("Signed in successfully.");
     } catch (cause) {
       toast.error(getAuthErrorMessage(cause, "Unable to sign in."));
@@ -76,7 +79,11 @@ export default function LoginForm({
           </p>
         </div>
 
-        <GoogleButton disabled={loading} redirectTo={redirectTo} />
+        <GoogleButton
+          disabled={loading}
+          redirectTo={redirectTo}
+          onAuthSuccess={onAuthSuccess}
+        />
 
         <AuthDivider />
 

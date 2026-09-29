@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Delivery } from "../types";
 import { getStatusPillClasses } from "@/utils/deliveryDisplayHelpers";
 import { formatInr } from "../pricing";
-import { deliveryRoutePath } from "../mockDeliveries";
+import { deliveryRoutePath } from "../paths";
 
 type DeliveryHistoryCardProps = {
   delivery: Delivery;

@@ -1,7 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
 import BackButton from "@/dashboard/components/BackButton";
-import { getDeliveryById } from "../mockDeliveries";
+import { useDeliveryHistory } from "../hooks/useDeliveryHistory";
 import { buildCustomerDetailTimeline, isActiveDeliveryDetailStatus } from "../types";
 import DeliveryDetailHeader from "./components/DeliveryHeader";
 import DeliveryLocationsCard from "./components/DeliveryLocationsCard";
@@ -17,9 +19,19 @@ type DeliveryDetailProps = {
 };
 
 export default function DeliveryDetail({ deliveryId }: DeliveryDetailProps) {
-  const delivery = getDeliveryById(deliveryId);
+  const { delivery, loading, error } = useDeliveryHistory(deliveryId, {
+    pollWhenActive: true,
+  });
 
-  if (!delivery) {
+  if (loading) {
+    return (
+      <main className={`${DASHBOARD_MAIN} bg-white`}>
+        <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
+      </main>
+    );
+  }
+
+  if (error || !delivery) {
     return (
       <main className={`${DASHBOARD_MAIN} text-center`}>
         <BackButton href="/deliveries" label="Back to deliveries" />
@@ -27,7 +39,7 @@ export default function DeliveryDetail({ deliveryId }: DeliveryDetailProps) {
           Delivery not found
         </h1>
         <p className="mt-2 text-body text-muted-foreground">
-          We couldn&apos;t find delivery {deliveryId}.
+          {error ?? `We couldn't find delivery ${deliveryId}.`}
         </p>
         <Link
           href="/deliveries"
@@ -48,18 +60,17 @@ export default function DeliveryDetail({ deliveryId }: DeliveryDetailProps) {
         <DeliveryDetailHeader delivery={delivery} />
         <DeliverySummaryHeroCard delivery={delivery} />
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-x-5">
           <div className="flex flex-col gap-4">
-            {isActive && <DeliveryTimeline events={timelineEvents} />}
+            <DeliveryTimeline events={timelineEvents} />
             <DeliveryLocationsCard delivery={delivery} />
           </div>
 
           <aside className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 gap-4 md:portrait:grid-cols-2 lg:grid-cols-1 [&>*]:min-w-0">
-              <DetailDriverCard delivery={delivery} />
-              <DetailServiceInfoCard delivery={delivery} />
-            </div>
-            {isActive ? <DetailSafeCompliantCard /> : <DetailNeedHelpCard />}
+            {isActive && <DetailDriverCard delivery={delivery} />}
+            <DetailServiceInfoCard delivery={delivery} />
+            <DetailNeedHelpCard />
+            <DetailSafeCompliantCard />
           </aside>
         </div>
       </div>

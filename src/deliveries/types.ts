@@ -1,10 +1,13 @@
 import { calculateDeliveryPricing, type DeliveryPricing } from "./pricing";
+import type { TrackingEventItem } from "./timeline-builder";
 
 export type DeliveryStatus =
   | "booked"
   | "driver_assigned"
+  | "pickup_otp_pending"
   | "picked_up"
   | "in_transit"
+  | "delivery_otp_pending"
   | "delivered"
   | "failed"
   | "cancelled";
@@ -27,7 +30,7 @@ export type DriverStatus = "assigned" | "arriving" | "picked_up" | "in_transit";
 
 export type DeliveryDriver = {
   name: string;
-  rating: number;
+  rating?: number;
   vehicleType: string;
   vehicleNumber: string;
   phone?: string;
@@ -39,8 +42,10 @@ export type DeliveryDriver = {
 
 export type Delivery = {
   id: string;
+  reference?: string;
   status: DeliveryStatus;
   statusLabel: string;
+  providerCode?: string;
   pickup: DeliveryLocation;
   dropoff: DeliveryLocation;
   packageType: string;
@@ -55,6 +60,8 @@ export type Delivery = {
   estimatedArrival: string;
   driverInitials: string;
   timeline: TimelineEvent[];
+  /** Detail-page timeline built from backend history. */
+  detailTimeline?: TimelineEvent[];
   selectedService?: string;
   thirdPartyCharge?: number;
   pricing?: DeliveryPricing;
@@ -67,6 +74,12 @@ export type Delivery = {
   deliveryOtp?: string;
   pickupOtpVerified?: boolean;
   deliveryOtpVerified?: boolean;
+  pickupOtpPending?: boolean;
+  deliveryOtpPending?: boolean;
+  trackingLatitude?: number | null;
+  trackingLongitude?: number | null;
+  trackingUrl?: string | null;
+  trackingEvents?: TrackingEventItem[];
   bookedAtLabel?: string;
   estimatedDuration?: string;
   estimatedDeliveryLabel?: string;
@@ -95,8 +108,10 @@ export type DeliveryFilter =
 export const STATUS_LABELS: Record<DeliveryStatus, string> = {
   booked: "Booked",
   driver_assigned: "Driver assigned",
+  pickup_otp_pending: "Pickup verification",
   picked_up: "Picked up",
   in_transit: "In transit",
+  delivery_otp_pending: "Delivery verification",
   delivered: "Delivered",
   failed: "Failed",
   cancelled: "Cancelled",
@@ -110,11 +125,14 @@ type TimelineOtpOptions = {
 const STATUS_ORDER: DeliveryStatus[] = [
   "booked",
   "driver_assigned",
+  "pickup_otp_pending",
   "picked_up",
   "in_transit",
+  "delivery_otp_pending",
   "delivered",
 ];
 
+/** Fallback timeline for list items without full history — no fabricated timestamps. */
 export function buildDefaultTimeline(
   currentStatus: DeliveryStatus,
   otp: TimelineOtpOptions = {},
@@ -122,45 +140,22 @@ export function buildDefaultTimeline(
   const { pickupOtpVerified = false, deliveryOtpVerified = false } = otp;
 
   const steps: TimelineEvent[] = [
-    { id: "booked", label: "Booked", time: "10:02 AM", state: "upcoming" },
-    {
-      id: "driver_assigned",
-      label: "Driver assigned",
-      time: "10:05 AM",
-      state: "upcoming",
-    },
-    {
-      id: "pickup_otp",
-      label: "Pickup OTP verified",
-      time: pickupOtpVerified ? "10:28 AM" : undefined,
-      state: "upcoming",
-    },
-    {
-      id: "picked_up",
-      label: "Picked up",
-      time: "10:32 AM",
-      state: "upcoming",
-    },
-    { id: "in_transit", label: "In transit", time: "Now", state: "upcoming" },
-    {
-      id: "delivery_otp",
-      label: "Delivery OTP verified",
-      time: deliveryOtpVerified ? "12:10 PM" : undefined,
-      state: "upcoming",
-    },
-    {
-      id: "delivered",
-      label: "Delivered",
-      time: "Estimated 12:15 PM",
-      state: "upcoming",
-    },
+    { id: "booked", label: "Booked", state: "upcoming" },
+    { id: "driver_assigned", label: "Driver assigned", state: "upcoming" },
+    { id: "pickup_otp", label: "Pickup OTP verified", state: "upcoming" },
+    { id: "picked_up", label: "Picked up", state: "upcoming" },
+    { id: "in_transit", label: "In transit", state: "upcoming" },
+    { id: "delivery_otp", label: "Delivery OTP verified", state: "upcoming" },
+    { id: "delivered", label: "Delivered", state: "upcoming" },
   ];
 
   const statusToStepIndex: Record<DeliveryStatus, number> = {
     booked: 0,
     driver_assigned: 1,
+    pickup_otp_pending: 2,
     picked_up: 3,
     in_transit: 4,
+    delivery_otp_pending: 5,
     delivered: 6,
     failed: 0,
     cancelled: 0,
@@ -177,7 +172,6 @@ export function buildDefaultTimeline(
     return steps.map((step) => ({
       ...step,
       state: "complete" as TimelineEventState,
-      time: step.id === "delivered" ? step.time?.replace("Estimated ", "") : step.time,
     }));
   }
 
@@ -188,7 +182,10 @@ export function buildDefaultTimeline(
       if (pickupOtpVerified) {
         return { ...step, state: "complete" as TimelineEventState };
       }
-      if (currentStatus === "driver_assigned") {
+      if (
+        currentStatus === "driver_assigned" ||
+        currentStatus === "pickup_otp_pending"
+      ) {
         return { ...step, state: "current" as TimelineEventState };
       }
       if (index < currentIndex) {
@@ -201,7 +198,7 @@ export function buildDefaultTimeline(
       if (deliveryOtpVerified) {
         return { ...step, state: "complete" as TimelineEventState };
       }
-      if (currentStatus === "in_transit" || currentStatus === "picked_up") {
+      if (currentStatus === "in_transit" || currentStatus === "delivery_otp_pending") {
         return { ...step, state: "current" as TimelineEventState };
       }
       if (index < currentIndex) {
@@ -225,73 +222,63 @@ export function buildDefaultTimeline(
   });
 }
 
-const CUSTOMER_TIMELINE_STEPS = [
-  { id: "order_confirmed", label: "Order confirmed" },
-  { id: "driver_assigned", label: "Driver assigned" },
-  { id: "picked_up", label: "Picked up" },
-  { id: "on_the_way", label: "On the way" },
-  { id: "delivered", label: "Delivered" },
-] as const;
-
-const CUSTOMER_TIMELINE_STATUS_INDEX: Record<DeliveryStatus, number> = {
-  booked: 0,
-  driver_assigned: 1,
-  picked_up: 2,
-  in_transit: 3,
-  delivered: 4,
-  failed: 0,
-  cancelled: 0,
-};
-
 export function buildCustomerDetailTimeline(delivery: Delivery): TimelineEvent[] {
-  const times: Record<string, string | undefined> = {
-    order_confirmed: "Sep 10, 10:32 AM",
-    driver_assigned: "Sep 10, 10:35 AM",
-    picked_up: "Sep 10, 10:48 AM",
-    on_the_way: delivery.status === "in_transit" ? "Sep 10, 11:05 AM" : undefined,
-    delivered: delivery.deliveryEta ?? `ETA ${delivery.estimatedArrival}`,
+  if (delivery.detailTimeline) {
+    return delivery.detailTimeline;
+  }
+
+  const currentIndex: Record<DeliveryStatus, number> = {
+    booked: 0,
+    driver_assigned: 1,
+    pickup_otp_pending: 1,
+    picked_up: 2,
+    in_transit: 3,
+    delivery_otp_pending: 3,
+    delivered: 4,
+    failed: 0,
+    cancelled: 0,
   };
 
+  const steps = [
+    { id: "order_confirmed", label: "Order confirmed" },
+    { id: "driver_assigned", label: "Driver assigned" },
+    { id: "picked_up", label: "Picked up" },
+    { id: "on_the_way", label: "On the way" },
+    { id: "delivered", label: "Delivered" },
+  ];
+
+  const idx = currentIndex[delivery.status];
+
   if (delivery.status === "cancelled" || delivery.status === "failed") {
-    return CUSTOMER_TIMELINE_STEPS.map((step, index) => ({
-      id: step.id,
-      label: step.label,
-      time: times[step.id],
-      state:
-        index === 0
-          ? ("complete" as TimelineEventState)
-          : ("upcoming" as TimelineEventState),
+    return steps.map((step, index) => ({
+      ...step,
+      state: (index === 0 ? "complete" : "upcoming") as TimelineEventState,
     }));
   }
 
   if (delivery.status === "delivered") {
-    return CUSTOMER_TIMELINE_STEPS.map((step) => ({
-      id: step.id,
-      label: step.label,
-      time: step.id === "delivered" ? delivery.estimatedArrival : times[step.id],
+    return steps.map((step) => ({
+      ...step,
+      time: step.id === "delivered" ? delivery.deliveredAtLabel : undefined,
       state: "complete" as TimelineEventState,
     }));
   }
 
-  const currentIndex = CUSTOMER_TIMELINE_STATUS_INDEX[delivery.status];
-
-  return CUSTOMER_TIMELINE_STEPS.map((step, index) => {
+  return steps.map((step, index) => {
     let state: TimelineEventState = "upcoming";
-    if (index < currentIndex) state = "complete";
-    else if (index === currentIndex) state = "current";
-
-    return {
-      id: step.id,
-      label: step.label,
-      time: times[step.id],
-      state,
-    };
+    if (index < idx) state = "complete";
+    else if (index === idx) state = "current";
+    return { ...step, state };
   });
 }
 
 export function isActiveDeliveryDetailStatus(status: DeliveryStatus): boolean {
   return (
-    status === "picked_up" || status === "in_transit" || status === "driver_assigned"
+    status === "picked_up" ||
+    status === "in_transit" ||
+    status === "driver_assigned" ||
+    status === "pickup_otp_pending" ||
+    status === "delivery_otp_pending"
   );
 }
 
@@ -299,13 +286,19 @@ export function isActiveTrackingStatus(status: DeliveryStatus): boolean {
   return (
     status === "booked" ||
     status === "driver_assigned" ||
+    status === "pickup_otp_pending" ||
     status === "picked_up" ||
-    status === "in_transit"
+    status === "in_transit" ||
+    status === "delivery_otp_pending"
   );
 }
 
 export function canCancelDelivery(status: DeliveryStatus): boolean {
-  return status === "booked" || status === "driver_assigned";
+  return (
+    status === "booked" ||
+    status === "driver_assigned" ||
+    status === "pickup_otp_pending"
+  );
 }
 
 export { calculateDeliveryPricing };

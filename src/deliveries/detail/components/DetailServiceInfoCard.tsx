@@ -24,9 +24,9 @@ function IconService({ className = "h-5 w-5" }: { className?: string }) {
 export default function DetailServiceInfoCard({
   delivery,
 }: DetailServiceInfoCardProps) {
-  const serviceName = delivery.selectedService ?? "Delivery partner";
+  const serviceName = delivery.selectedService ?? "Standard delivery";
   const partner = getPartnerMark(serviceName);
-  const tagline = delivery.serviceTagline ?? "Fast & reliable delivery";
+  const tagline = delivery.serviceTagline;
   const serviceType = delivery.serviceType ?? "Standard";
 
   return (
@@ -47,9 +47,11 @@ export default function DetailServiceInfoCard({
         </span>
         <div className="min-w-0">
           <p className="text-body font-semibold text-foreground">{serviceName}</p>
-          <p className="mt-0.5 text-small capitalize text-muted-foreground">
-            {tagline}
-          </p>
+          {tagline && (
+            <p className="mt-0.5 text-small capitalize text-muted-foreground">
+              {tagline}
+            </p>
+          )}
           <span className="mt-2 inline-flex rounded-pill border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-caption font-semibold capitalize text-blue-700">
             {serviceType.replace(" delivery", "")}
           </span>

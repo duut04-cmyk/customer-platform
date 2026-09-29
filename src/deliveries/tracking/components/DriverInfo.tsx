@@ -63,10 +63,12 @@ export default function DriverInfo({ delivery }: DriverInfoProps) {
             <p className="mt-1 text-body text-muted-foreground">
               {driver.vehicleType} · {driver.vehicleNumber}
             </p>
-            <p className="mt-1 text-body text-foreground">
-              <span aria-hidden="true">⭐ </span>
-              <span className="font-medium">{driver.rating.toFixed(1)}</span>
-            </p>
+            {driver.rating != null && (
+              <p className="mt-1 text-body text-foreground">
+                <span aria-hidden="true">⭐ </span>
+                <span className="font-medium">{driver.rating.toFixed(1)}</span>
+              </p>
+            )}
           </div>
 
           {driver.phone && (

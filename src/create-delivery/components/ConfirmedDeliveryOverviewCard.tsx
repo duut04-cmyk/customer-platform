@@ -42,7 +42,7 @@ export default function ConfirmedDeliveryOverviewCard({
               id="confirmed-overview-heading"
               className="mt-0.5 text-body-lg font-bold text-foreground md:text-subheading"
             >
-              {deliveryId}
+              {booking.deliveryReference ?? deliveryId}
             </h2>
           </div>
           <span className="inline-flex items-center gap-1 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">
@@ -73,9 +73,6 @@ export default function ConfirmedDeliveryOverviewCard({
             <IconClock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-small font-semibold text-foreground">
-                {recommendation.estimatedDuration}
-              </p>
-              <p className="mt-0.5 text-caption text-muted-foreground">
                 {recommendation.estimatedDelivery}
               </p>
             </div>

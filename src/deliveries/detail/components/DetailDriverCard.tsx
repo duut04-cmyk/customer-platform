@@ -95,15 +95,17 @@ export default function DetailDriverCard({ delivery }: DetailDriverCardProps) {
           )}
           <div className="min-w-0 flex-1">
             <p className="text-body-lg font-semibold text-foreground">{driver.name}</p>
-            <p className="mt-0.5 text-small text-muted-foreground">
-              <span aria-hidden="true">★ </span>
-              <span className="font-medium text-foreground">
-                {driver.rating.toFixed(1)}
-              </span>
-              {driver.deliveryCount != null && (
-                <span> ({driver.deliveryCount} deliveries)</span>
-              )}
-            </p>
+            {driver.rating != null && (
+              <p className="mt-0.5 text-small text-muted-foreground">
+                <span aria-hidden="true">★ </span>
+                <span className="font-medium text-foreground">
+                  {driver.rating.toFixed(1)}
+                </span>
+                {driver.deliveryCount != null && (
+                  <span> ({driver.deliveryCount} deliveries)</span>
+                )}
+              </p>
+            )}
             {driver.phone && (
               <button
                 type="button"

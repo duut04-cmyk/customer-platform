@@ -21,7 +21,8 @@ describe("completeGoogleLogin", () => {
   });
 
   it("exchanges the Google credential for a Dutt session", async () => {
-    const router = { push: vi.fn() };
+    const router = { push: vi.fn(), replace: vi.fn() };
+    const onAuthSuccess = vi.fn();
     googleLoginMock.mockResolvedValue({
       data: {
         accessToken: "access-token",
@@ -34,7 +35,7 @@ describe("completeGoogleLogin", () => {
       },
     });
 
-    await completeGoogleLogin("google-id-token", router, "/dashboard");
+    await completeGoogleLogin("google-id-token", router, "/dashboard", onAuthSuccess);
 
     expect(googleLoginMock).toHaveBeenCalledWith({
       credential: "google-id-token",
@@ -55,6 +56,7 @@ describe("completeGoogleLogin", () => {
         email: "jane@example.com",
       },
     );
-    expect(router.push).toHaveBeenCalledWith("/dashboard");
+    expect(onAuthSuccess).toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith("/dashboard");
   });
 });
