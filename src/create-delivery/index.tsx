@@ -1,6 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createAndOrchestrate,
+  mapFormToCreateRequest,
+  mapOrchestrationToRecommendation,
+} from "@/api/deliveries";
+import {
+  completeBookingWithPayment,
+  type BookingPaymentPhase,
+} from "@/lib/payments/complete-booking-with-payment";
+import { ApiError } from "@/api/errors";
 import CreateDeliveryPageTopSection from "./components/CreateDeliveryPageTopSection";
 import SafetyComplianceCard from "@/dashboard/components/SafetyComplianceCard";
 import { CREATE_DELIVERY_GRID, DASHBOARD_MAIN } from "@/dashboard/components/layout";
@@ -15,7 +25,6 @@ import DeliveryProgress from "./components/DeliveryProgress";
 import FindingDelivery from "./components/FindingDelivery";
 import FindingDeliverySummaryCard from "./components/FindingDeliverySummaryCard";
 import FindingTimeSlotCard from "./components/FindingTimeSlotCard";
-import { getMockDeliveryRecommendation } from "./mockOrchestrationResult";
 import PackageStep, { validatePackageStep } from "./components/PackageStep";
 import PickupDropStep, { validatePickupStep } from "./components/PickupDropStep";
 import RequirementsStep, {
@@ -28,7 +37,6 @@ import {
   hasComplianceConsent,
   initialDeliveryFormData,
   isPackageStepComplete,
-  MOCK_DELIVERY_ID,
   type BookingResult,
   type DeliveryFormData,
   type DeliveryRecommendation,
@@ -73,10 +81,15 @@ export default function CreateDelivery() {
     null,
   );
   const [booking, setBooking] = useState<BookingResult | null>(null);
+  const [createdDeliveryId, setCreatedDeliveryId] = useState<string | null>(null);
+  const [orchestrationError, setOrchestrationError] = useState<string | null>(null);
+  const pendingRecommendationRef = useRef<DeliveryRecommendation | null>(null);
+  const findingAnimationDoneRef = useRef(false);
+  const orchestrationStartedRef = useRef(false);
+  const packagePhotoUrlsRef = useRef<string[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof DeliveryFormData, string>>>(
     {},
   );
-  const packagePhotoUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
     packagePhotoUrlsRef.current = data.packagePhotoUrls;
@@ -89,6 +102,41 @@ export default function CreateDelivery() {
       });
     };
   }, []);
+
+  useEffect(() => {
+    if (step !== "finding") {
+      orchestrationStartedRef.current = false;
+      return;
+    }
+    if (orchestrationStartedRef.current) return;
+    orchestrationStartedRef.current = true;
+    setOrchestrationError(null);
+    pendingRecommendationRef.current = null;
+    findingAnimationDoneRef.current = false;
+
+    void (async () => {
+      try {
+        const body = mapFormToCreateRequest(data);
+        const result = await createAndOrchestrate(body, crypto.randomUUID());
+        setCreatedDeliveryId(result.deliveryId);
+        const mapped = mapOrchestrationToRecommendation(result.orchestration);
+        pendingRecommendationRef.current = mapped;
+        if (findingAnimationDoneRef.current) {
+          setRecommendation(mapped);
+          setStep("best_option");
+          pendingRecommendationRef.current = null;
+        }
+      } catch (err) {
+        setOrchestrationError(
+          err instanceof ApiError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : "Unable to find a delivery option. Please try again.",
+        );
+      }
+    })();
+  }, [step, data]);
 
   const updateData = useCallback((updates: Partial<DeliveryFormData>) => {
     setData((prev) => ({ ...prev, ...updates }));
@@ -133,36 +181,59 @@ export default function CreateDelivery() {
   const handleFindDelivery = () => {
     setRecommendation(null);
     setBooking(null);
+    setCreatedDeliveryId(null);
+    setOrchestrationError(null);
     setStep("finding");
   };
 
-  const handleFindingComplete = useCallback(() => {
-    setRecommendation(getMockDeliveryRecommendation(data));
-    setStep("best_option");
-  }, [data]);
+  const handleFindingAnimationComplete = useCallback(() => {
+    findingAnimationDoneRef.current = true;
+    const pending = pendingRecommendationRef.current;
+    if (pending) {
+      setRecommendation(pending);
+      setStep("best_option");
+      pendingRecommendationRef.current = null;
+    }
+  }, []);
 
   const handleBookDelivery = () => {
     setStep("booking");
   };
 
-  const handleBookingComplete = useCallback(() => {
-    if (!recommendation) return;
-
-    setBooking({
-      deliveryId: MOCK_DELIVERY_ID,
-      recommendation,
-    });
-    setStep("confirmed");
-  }, [recommendation]);
+  const handleBookingComplete = useCallback(
+    async (
+      onPhase?: (phase: BookingPaymentPhase) => void,
+    ): Promise<BookingResult | null> => {
+      if (!recommendation || !createdDeliveryId) return null;
+      try {
+        const confirmed = await completeBookingWithPayment({
+          deliveryId: createdDeliveryId,
+          onPhase,
+        });
+        const result: BookingResult = {
+          deliveryId: createdDeliveryId,
+          deliveryReference: confirmed.deliveryReference,
+          recommendation,
+        };
+        setBooking(result);
+        setStep("confirmed");
+        return result;
+      } catch (err) {
+        throw err instanceof ApiError
+          ? err
+          : new ApiError({
+              status: 0,
+              message:
+                err instanceof Error ? err.message : "Booking confirmation failed.",
+            });
+      }
+    },
+    [recommendation, createdDeliveryId],
+  );
 
   const handleBackToReview = () => {
     setRecommendation(null);
     setStep("review");
-  };
-
-  const handleEditStep = (nextStep: FormStep, focus?: "pickup" | "dropoff") => {
-    setPickupFocus(focus ?? null);
-    setStep(nextStep);
   };
 
   const showProgress = isProgressStep(step);
@@ -178,6 +249,11 @@ export default function CreateDelivery() {
     step === "confirmed" ||
     step === "best_option";
   const showCreateDeliveryTitle = showFormLayout;
+
+  const handleEditStep = (nextStep: FormStep, focus?: "pickup" | "dropoff") => {
+    setPickupFocus(focus ?? null);
+    setStep(nextStep);
+  };
 
   const continueDisabled = (() => {
     if (step === "pickup") {
@@ -289,27 +365,45 @@ export default function CreateDelivery() {
                   : "Finding the best delivery option"
               }
               subtitle={
-                data.timing === "scheduled"
-                  ? "You've selected a delivery time slot. Now we're finding the best available service for your request."
-                  : "Doot is checking available delivery services based on price, delivery time, package compatibility, and your requirements."
+                orchestrationError
+                  ? orchestrationError
+                  : data.timing === "scheduled"
+                    ? "You've selected a delivery time slot. Now we're finding the best available service for your request."
+                    : "Doot is checking available delivery services based on price, delivery time, package compatibility, and your requirements."
               }
               showBackToDashboard={false}
             />
 
-            <div
-              className={`grid min-w-0 w-full max-w-full gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}
-            >
-              <FindingDelivery
-                data={data}
-                onComplete={handleFindingComplete}
-                onEdit={handleEditStep}
-              />
-              <aside className="flex min-w-0 w-full max-w-full flex-col gap-3 sm:gap-4">
-                <FindingTimeSlotCard data={data} />
-                <FindingDeliverySummaryCard data={data} />
-                <SafetyComplianceCard variant="create" className="p-3 sm:p-4" />
-              </aside>
-            </div>
+            {orchestrationError ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+                <p className="text-body font-semibold text-red-800">
+                  Could not find a delivery option
+                </p>
+                <p className="mt-2 text-small text-red-700">{orchestrationError}</p>
+                <button
+                  type="button"
+                  className="mt-4 text-small font-semibold text-accent"
+                  onClick={handleBackToReview}
+                >
+                  Back to review
+                </button>
+              </div>
+            ) : (
+              <div
+                className={`grid min-w-0 w-full max-w-full gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}
+              >
+                <FindingDelivery
+                  data={data}
+                  onComplete={handleFindingAnimationComplete}
+                  onEdit={handleEditStep}
+                />
+                <aside className="flex min-w-0 w-full max-w-full flex-col gap-3 sm:gap-4">
+                  <FindingTimeSlotCard data={data} />
+                  <FindingDeliverySummaryCard data={data} />
+                  <SafetyComplianceCard variant="create" className="p-3 sm:p-4" />
+                </aside>
+              </div>
+            )}
           </div>
         )}
 
@@ -341,13 +435,13 @@ export default function CreateDelivery() {
             </div>
           </div>
         )}
-        {step === "booking" && recommendation && (
+        {step === "booking" && recommendation && createdDeliveryId && (
           <div className="mt-6 space-y-5 lg:mt-8">
             <BookingDeliveryHeader />
             <BookingDelivery
               recommendation={recommendation}
               formData={data}
-              onComplete={handleBookingComplete}
+              onConfirm={handleBookingComplete}
             />
           </div>
         )}

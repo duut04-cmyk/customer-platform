@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Button from "@/common/components/Button";
-import { deliveryTrackingPath } from "../../mockDeliveries";
+import { deliveryTrackingPath } from "../../paths";
 import type { Delivery } from "../../types";
 
 type DeliveryActionsProps = {

@@ -7,22 +7,17 @@ type TrackingHorizontalTimelineProps = {
 
 type Milestone = {
   label: string;
-  time: string;
+  time?: string;
   state: "complete" | "current" | "upcoming";
 };
 
 function buildMilestones(delivery: Delivery): Milestone[] {
-  const defaults = {
-    pickedUp: "4:12 PM",
-    onTheWay: "4:28 PM",
-    arrivingSoon: delivery.deliveryEta ?? `~${delivery.estimatedArrival}`,
-  };
-  const times = { ...defaults, ...delivery.trackingMilestones };
+  const times = delivery.trackingMilestones ?? {};
 
   const currentStep =
     delivery.status === "picked_up"
       ? 1
-      : delivery.status === "in_transit"
+      : delivery.status === "in_transit" || delivery.status === "delivery_otp_pending"
         ? 2
         : delivery.status === "delivered"
           ? 3
@@ -47,7 +42,7 @@ function buildMilestones(delivery: Delivery): Milestone[] {
     },
     {
       label: "Arriving soon",
-      time: times.arrivingSoon.replace(/^ETA\s/, ""),
+      time: times.arrivingSoon,
       state: stepState(2),
     },
   ];
@@ -58,8 +53,11 @@ export default function TrackingHorizontalTimeline({
 }: TrackingHorizontalTimelineProps) {
   const milestones = buildMilestones(delivery);
   const progressPercent =
-    delivery.status === "in_transit" ? 66 : delivery.status === "picked_up" ? 33 : 0;
-  // currentStep 0 = awaiting pickup (booked / driver_assigned)
+    delivery.status === "in_transit" || delivery.status === "delivery_otp_pending"
+      ? 66
+      : delivery.status === "picked_up"
+        ? 33
+        : 0;
 
   return (
     <div className="mt-5">
@@ -100,7 +98,7 @@ export default function TrackingHorizontalTimeline({
               {milestone.label}
             </p>
             <p className="mt-0.5 text-caption text-muted-foreground">
-              {milestone.time}
+              {milestone.time ?? "—"}
             </p>
           </li>
         ))}

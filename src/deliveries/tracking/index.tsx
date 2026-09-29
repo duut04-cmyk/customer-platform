@@ -1,7 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
 import BackButton from "@/dashboard/components/BackButton";
-import { getDeliveryById } from "../mockDeliveries";
+import { useDeliveryHistory } from "../hooks/useDeliveryHistory";
 import TrackingPage from "./TrackingPage";
 
 type DeliveryTrackingProps = {
@@ -9,9 +11,19 @@ type DeliveryTrackingProps = {
 };
 
 export default function DeliveryTracking({ deliveryId }: DeliveryTrackingProps) {
-  const delivery = getDeliveryById(deliveryId);
+  const { delivery, loading, error, refresh } = useDeliveryHistory(deliveryId, {
+    pollWhenActive: true,
+  });
 
-  if (!delivery) {
+  if (loading) {
+    return (
+      <main className={`${DASHBOARD_MAIN} bg-white`}>
+        <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
+      </main>
+    );
+  }
+
+  if (error || !delivery) {
     return (
       <main className={`${DASHBOARD_MAIN} text-center`}>
         <BackButton href="/deliveries" label="Back to deliveries" />
@@ -28,5 +40,5 @@ export default function DeliveryTracking({ deliveryId }: DeliveryTrackingProps) 
     );
   }
 
-  return <TrackingPage delivery={delivery} />;
+  return <TrackingPage delivery={delivery} onRefresh={refresh} />;
 }

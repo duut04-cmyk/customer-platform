@@ -5,22 +5,28 @@ import Button from "@/common/components/Button";
 import DetailDriverCard from "@/deliveries/detail/components/DetailDriverCard";
 import DetailSafeCompliantCard from "@/deliveries/detail/components/DetailSafeCompliantCard";
 import DetailServiceInfoCard from "@/deliveries/detail/components/DetailServiceInfoCard";
+import type { CancelDeliveryReason } from "../../customerCopy";
 import { canCancelDelivery, type Delivery } from "../../types";
 import CancelDeliveryModal from "./CancelDeliveryModal";
 import LiveTrackingCard from "./LiveTrackingCard";
 import TrackingDeliverySummaryCard from "./TrackingDeliverySummaryCard";
-import TrackingOtpSection from "./TrackingOtpSection";
+import OtpVerificationSection from "./OtpVerificationSection";
 import TrackingPageHeader from "./TrackingPageHeader";
+import TrackingEventHistory from "./TrackingEventHistory";
 import TrackingProgressSection from "./TrackingProgressSection";
 
 type TrackingInProgressViewProps = {
   delivery: Delivery;
-  onCancel: (reason: string) => void;
+  onCancel: (reason: CancelDeliveryReason, otherText?: string) => void;
+  cancelling?: boolean;
+  onOtpVerified: () => void;
 };
 
 export default function TrackingInProgressView({
   delivery,
   onCancel,
+  cancelling = false,
+  onOtpVerified,
 }: TrackingInProgressViewProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const showCancel = canCancelDelivery(delivery.status);
@@ -32,8 +38,9 @@ export default function TrackingInProgressView({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="flex flex-col gap-4">
           <LiveTrackingCard delivery={delivery} />
-          <TrackingOtpSection delivery={delivery} />
+          <OtpVerificationSection delivery={delivery} onVerified={onOtpVerified} />
           <TrackingProgressSection delivery={delivery} />
+          <TrackingEventHistory delivery={delivery} />
           <TrackingDeliverySummaryCard delivery={delivery} />
           {showCancel && (
             <div className="flex justify-start">
@@ -61,9 +68,14 @@ export default function TrackingInProgressView({
       <CancelDeliveryModal
         open={cancelOpen}
         onClose={() => setCancelOpen(false)}
-        onConfirm={(reason) => {
-          onCancel(reason);
-          setCancelOpen(false);
+        confirming={cancelling}
+        onConfirm={async (reason, otherText) => {
+          try {
+            await onCancel(reason, otherText);
+            setCancelOpen(false);
+          } catch {
+            // Keep modal open; parent surfaces the error message.
+          }
         }}
       />
     </div>

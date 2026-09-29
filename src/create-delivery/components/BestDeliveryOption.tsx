@@ -2,12 +2,8 @@
 
 import type { ReactElement } from "react";
 import Button from "@/common/components/Button";
-import {
-  IconArrowRight,
-  IconClock,
-  IconShield,
-  IconTruck,
-} from "@/dashboard/components/icons";
+import { isCashfreeCheckoutEnabled } from "@/config/payment-env";
+import { IconArrowRight, IconClock, IconTruck } from "@/dashboard/components/icons";
 import { getPartnerMark } from "@/utils/deliveryDisplayHelpers";
 import { formatInr } from "@/deliveries/pricing";
 import type { DeliveryFormData, DeliveryRecommendation } from "../types";
@@ -47,7 +43,11 @@ export default function BestDeliveryOption({
 }: BestDeliveryOptionProps) {
   const { pricing } = recommendation;
   const partner = getPartnerMark(recommendation.serviceName);
-  const accessibleBookLabel = `Confirm and continue for ${formatInr(pricing.total)}`;
+  const payThenConfirm = isCashfreeCheckoutEnabled();
+  const primaryCta = payThenConfirm ? "Pay & confirm booking" : "Confirm & continue";
+  const accessibleBookLabel = payThenConfirm
+    ? `Pay and confirm booking for ${formatInr(pricing.total)}`
+    : `Confirm and continue for ${formatInr(pricing.total)}`;
 
   return (
     <section
@@ -68,20 +68,12 @@ export default function BestDeliveryOption({
               {partner.letter}
             </span>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3
-                  id="recommended-service-heading"
-                  className="text-body-lg font-bold text-foreground md:text-subheading"
-                >
-                  {recommendation.serviceName}
-                </h3>
-                {recommendation.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-pill bg-emerald-50 px-2 py-0.5 text-caption font-semibold text-emerald-700">
-                    <IconShield className="h-3.5 w-3.5" />
-                    Verified
-                  </span>
-                )}
-              </div>
+              <h3
+                id="recommended-service-heading"
+                className="text-body-lg font-bold text-foreground md:text-subheading"
+              >
+                {recommendation.serviceName}
+              </h3>
               <p className="mt-1 text-small text-muted-foreground">
                 {recommendation.tagline}
               </p>
@@ -100,7 +92,7 @@ export default function BestDeliveryOption({
           <QuickInfoItem
             icon={<IconClock className="h-3.5 w-3.5" />}
             label="Estimated delivery"
-            value={recommendation.estimatedDuration}
+            value={recommendation.estimatedDelivery}
           />
           <QuickInfoItem
             icon={<IconClock className="h-3.5 w-3.5" />}
@@ -124,7 +116,7 @@ export default function BestDeliveryOption({
         <RecommendedDeliveryRoute
           pickupAddress={formData.pickupAddress}
           dropAddress={formData.dropAddress}
-          pickupTime={recommendation.pickupTime}
+          pickupTime={recommendation.estimatedPickup}
           deliveryEta={recommendation.deliveryEta}
         />
 
@@ -144,7 +136,7 @@ export default function BestDeliveryOption({
             onClick={onBook}
             aria-label={accessibleBookLabel}
           >
-            Confirm &amp; continue
+            {primaryCta}
             <IconArrowRight className="h-4 w-4" />
           </Button>
           <Button

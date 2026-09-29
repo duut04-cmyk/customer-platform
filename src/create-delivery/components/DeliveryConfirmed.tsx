@@ -6,7 +6,6 @@ import ConfirmedDeliveryOverviewCard from "./ConfirmedDeliveryOverviewCard";
 import ConfirmedDeliverySummaryCard from "./ConfirmedDeliverySummaryCard";
 import ConfirmedWhatHappensNextCard from "./ConfirmedWhatHappensNextCard";
 import PricingBreakdown from "./PricingBreakdown";
-import RecommendedDriverCard from "./RecommendedDriverCard";
 
 type DeliveryConfirmedProps = {
   booking: BookingResult;
@@ -44,7 +43,13 @@ export default function DeliveryConfirmed({
     <div className={`grid gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}>
       <div className="flex flex-col gap-4">
         <ConfirmedDeliveryOverviewCard booking={booking} formData={formData} />
-        <RecommendedDriverCard driver={recommendation.driver} />
+        <section className="rounded-xl border border-border bg-background p-4 shadow-sm md:p-5">
+          <p className="text-body font-semibold text-foreground">Driver assignment</p>
+          <p className="mt-1.5 text-small leading-relaxed text-muted-foreground">
+            A delivery partner will be assigned before pickup. You can track driver
+            details on the delivery tracking page once assigned.
+          </p>
+        </section>
       </div>
 
       <aside className="flex flex-col gap-4">

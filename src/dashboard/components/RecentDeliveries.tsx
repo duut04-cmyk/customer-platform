@@ -9,11 +9,8 @@ import DashboardSearch from "@/dashboard/components/DashboardSearch";
 import DatePeriodSelect from "@/dashboard/components/DatePeriodSelect";
 import { filterByDatePeriod, type DatePeriod } from "@/utils/datePeriods";
 import { getFilterCounts, searchDeliveries } from "@/utils/dashboardStats";
-import {
-  filterDeliveries,
-  getRecentDeliveries,
-  MOCK_DELIVERIES,
-} from "@/deliveries/mockDeliveries";
+import { filterDeliveries } from "@/deliveries/filters";
+import { useDeliveriesList } from "@/deliveries/hooks/useDeliveriesList";
 import type { DeliveryFilter } from "@/deliveries/types";
 import DeliveryCard from "./DeliveryCard";
 import { IconChevronRight } from "./icons";
@@ -33,23 +30,36 @@ export default function RecentDeliveries() {
   const [filter, setFilter] = useState<DeliveryFilter>("all");
   const [datePeriod, setDatePeriod] = useState<DatePeriod>("last_7_days");
 
+  const { deliveries: apiDeliveries, loading, error } = useDeliveriesList(50);
+
   const filterCounts = useMemo(() => {
-    const dateFiltered = filterByDatePeriod(MOCK_DELIVERIES, datePeriod);
+    const dateFiltered = filterByDatePeriod(apiDeliveries, datePeriod);
     return getFilterCounts(dateFiltered);
-  }, [datePeriod]);
+  }, [apiDeliveries, datePeriod]);
 
   const deliveries = useMemo(() => {
-    let list = getRecentDeliveries(10);
+    let list = apiDeliveries.slice(0, 10);
     list = filterByDatePeriod(list, datePeriod);
     list = filterDeliveries(list, filter);
     list = searchDeliveries(list, searchQuery);
     return list;
-  }, [filter, datePeriod, searchQuery]);
+  }, [apiDeliveries, filter, datePeriod, searchQuery]);
 
   const isEmpty = deliveries.length === 0;
 
+  if (loading) {
+    return (
+      <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
+    );
+  }
+
   return (
     <section className="min-w-0 rounded-xl border border-border bg-background shadow-sm">
+      {error && (
+        <p className="border-b border-border px-4 py-3 text-small text-red-600 sm:px-5">
+          {error}
+        </p>
+      )}
       <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
         <div>
           <h2 className="text-body-lg font-bold text-foreground">Recent deliveries</h2>

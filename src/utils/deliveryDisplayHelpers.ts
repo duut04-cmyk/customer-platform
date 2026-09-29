@@ -9,8 +9,10 @@ import {
 const ACTIVE_STATUSES: DeliveryStatus[] = [
   "booked",
   "driver_assigned",
+  "pickup_otp_pending",
   "picked_up",
   "in_transit",
+  "delivery_otp_pending",
 ];
 
 export function getStatusPillClasses(status: DeliveryStatus): string {
@@ -37,7 +39,7 @@ export function getStatusSubtext(delivery: Delivery): string {
   const eta = delivery.estimatedArrival;
   if (delivery.status === "in_transit" || delivery.status === "picked_up") {
     if (eta.startsWith("Estimated ")) return `ETA ${eta.replace("Estimated ", "")}`;
-    if (eta && eta !== "—") return `ETA ${eta}`;
+    if (eta && eta !== "—" && eta !== "Pending update") return `ETA ${eta}`;
     return "ETA —";
   }
   if (delivery.status === "delivered") {
@@ -85,23 +87,11 @@ type PartnerMark = {
   className: string;
 };
 
-const PARTNER_MARKS: Record<string, PartnerMark> = {
-  FlashDrop: { letter: "F", className: "bg-orange-500 text-white" },
-  MoveX: { letter: "M", className: "bg-blue-600 text-white" },
-  CityFleet: { letter: "C", className: "bg-violet-600 text-white" },
-  SwiftGo: { letter: "S", className: "bg-emerald-600 text-white" },
-};
-
+/** Neutral partner mark — no legacy provider branding. */
 export function getPartnerMark(service?: string): PartnerMark {
-  if (service && PARTNER_MARKS[service]) {
-    return PARTNER_MARKS[service];
-  }
-  return { letter: "?", className: "bg-surface text-muted-foreground" };
+  const label = service?.trim() || "Standard delivery";
+  return {
+    letter: label.charAt(0).toUpperCase(),
+    className: "bg-emerald-600 text-white",
+  };
 }
-
-export const DELIVERY_PARTNERS = [
-  "FlashDrop",
-  "MoveX",
-  "CityFleet",
-  "SwiftGo",
-] as const;

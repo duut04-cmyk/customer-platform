@@ -57,9 +57,6 @@ export default function BookingServiceSummaryCard({
                 Estimated delivery
               </p>
               <p className="mt-0.5 text-small font-semibold text-foreground">
-                {recommendation.estimatedDuration}
-              </p>
-              <p className="mt-0.5 text-caption text-muted-foreground">
                 {recommendation.estimatedDelivery}
               </p>
             </div>

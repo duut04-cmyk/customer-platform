@@ -62,38 +62,24 @@ export type DeliveryFormData = {
   consentAcceptedAt: string;
 };
 
-export type RecommendedDriver = {
-  name: string;
-  initials: string;
-  photoUrl: string;
-  rating: number;
-  deliveryCount: number;
-  phone: string;
-  vehicleType: string;
-  vehicleNumber: string;
-};
-
 export type DeliveryRecommendation = {
+  /** Internal provider code — not shown to customers. */
   serviceId: string;
+  /** Provider-neutral customer-facing service name. */
   serviceName: string;
   thirdPartyCharge: number;
-  serviceQualityRating: number;
   estimatedPickup: string;
   estimatedDelivery: string;
-  estimatedDuration: string;
-  packageCompatible: boolean;
   pricing: DeliveryPricing;
   tagline: string;
   serviceType: string;
-  verified: boolean;
   pickupAvailability: string;
-  driver: RecommendedDriver;
-  pickupTime: string;
   deliveryEta: string;
 };
 
 export type BookingResult = {
   deliveryId: string;
+  deliveryReference?: string;
   recommendation: DeliveryRecommendation;
 };
 
@@ -282,9 +268,8 @@ export function validatePackageFields(
   const errors: Partial<Record<keyof DeliveryFormData, string>> = {};
 
   if (!data.packageType) errors.packageType = "Select an item category.";
-  if (data.packagePhotoUrls.length < MIN_PACKAGE_PHOTOS) {
-    errors.packagePhotoUrls = `Add at least ${MIN_PACKAGE_PHOTOS} package photos.`;
-  } else if (data.packagePhotoUrls.length > MAX_PACKAGE_PHOTOS) {
+  // Photo upload API not wired yet — backend accepts empty photos array.
+  if (data.packagePhotoUrls.length > MAX_PACKAGE_PHOTOS) {
     errors.packagePhotoUrls = `You can upload up to ${MAX_PACKAGE_PHOTOS} package photos.`;
   }
   if (!data.packageSizeTier) {
@@ -332,8 +317,6 @@ export const REQUIREMENT_OPTIONS = [
   { id: "keep-upright", label: "Keep upright" },
   { id: "none", label: "No special requirements" },
 ] as const;
-
-export const MOCK_DELIVERY_ID = "DUTT-1042";
 
 export function formatScheduledAt(iso: string): string {
   if (!iso) return "—";

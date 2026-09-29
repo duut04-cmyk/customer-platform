@@ -110,7 +110,7 @@ export default function SignupForm({
             establishSession(response.data, response.data.user);
             setSignupPassword("");
             onAuthSuccess?.();
-            router.push(redirectTo);
+            router.replace(redirectTo);
             toast.success("Welcome! Your account is ready.");
           } catch (cause) {
             setSignupPassword("");
@@ -144,7 +144,11 @@ export default function SignupForm({
         </p>
       </div>
 
-      <GoogleButton disabled={loading} redirectTo={redirectTo} />
+      <GoogleButton
+        disabled={loading}
+        redirectTo={redirectTo}
+        onAuthSuccess={onAuthSuccess}
+      />
 
       <AuthDivider />
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { CREATE_DELIVERY_GRID } from "@/dashboard/components/layout";
-import { useCallback, useEffect, useState } from "react";
-import type { DeliveryFormData, DeliveryRecommendation } from "../types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ApiError } from "@/api/errors";
+import type { BookingPaymentPhase } from "@/lib/payments/complete-booking-with-payment";
+import type { BookingResult, DeliveryFormData, DeliveryRecommendation } from "../types";
 import BookingProgressStepper from "./BookingProgressStepper";
 import BookingServiceSummaryCard from "./BookingServiceSummaryCard";
 import BookingStatusBanners from "./BookingStatusBanners";
@@ -12,17 +14,34 @@ import ConfirmedDeliverySummaryCard from "./ConfirmedDeliverySummaryCard";
 type BookingDeliveryProps = {
   recommendation: DeliveryRecommendation;
   formData: DeliveryFormData;
-  onComplete: () => void;
+  onConfirm: (
+    onPhase?: (phase: BookingPaymentPhase) => void,
+  ) => Promise<BookingResult | null>;
 };
+
+function phaseToStepperIndex(phase: BookingPaymentPhase | "idle"): number {
+  switch (phase) {
+    case "idle":
+    case "creating_payment":
+      return 2;
+    case "opening_checkout":
+    case "awaiting_payment":
+      return 2;
+    case "confirming_booking":
+      return 3;
+    default:
+      return 2;
+  }
+}
 
 export function BookingDeliveryHeader() {
   return (
     <div className="space-y-2">
       <h2 className="text-heading font-bold tracking-tight text-foreground md:text-heading-md">
-        Booking your delivery
+        Pay and confirm booking
       </h2>
       <p className="text-body text-muted-foreground">
-        Your selected delivery option is being booked.
+        Complete secure payment, then we will confirm your delivery with the partner.
       </p>
     </div>
   );
@@ -31,35 +50,75 @@ export function BookingDeliveryHeader() {
 export default function BookingDelivery({
   recommendation,
   formData,
-  onComplete,
+  onConfirm,
 }: BookingDeliveryProps) {
   const [activeIndex, setActiveIndex] = useState(2);
+  const [phaseLabel, setPhaseLabel] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const autoStartRef = useRef(false);
 
-  const handleComplete = useCallback(() => {
-    onComplete();
-  }, [onComplete]);
+  const handlePhase = useCallback((phase: BookingPaymentPhase) => {
+    setActiveIndex(phaseToStepperIndex(phase));
+    switch (phase) {
+      case "creating_payment":
+        setPhaseLabel("Preparing secure payment…");
+        break;
+      case "opening_checkout":
+        setPhaseLabel("Opening Cashfree checkout…");
+        break;
+      case "awaiting_payment":
+        setPhaseLabel("Confirming payment with Doot…");
+        break;
+      case "confirming_booking":
+        setPhaseLabel("Booking your delivery with the partner…");
+        break;
+      default:
+        setPhaseLabel(null);
+    }
+  }, []);
+
+  const runConfirm = useCallback(async () => {
+    try {
+      setError(null);
+      await onConfirm(handlePhase);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Booking failed. Please try again.",
+      );
+      setActiveIndex(2);
+      setPhaseLabel(null);
+    }
+  }, [handlePhase, onConfirm]);
 
   useEffect(() => {
-    const timers: number[] = [];
-
-    timers.push(
-      window.setTimeout(() => {
-        setActiveIndex(3);
-      }, 900),
-    );
-
-    timers.push(
-      window.setTimeout(() => {
-        handleComplete();
-      }, 2600),
-    );
-
-    return () => timers.forEach((id) => window.clearTimeout(id));
-  }, [handleComplete]);
+    if (autoStartRef.current) return;
+    autoStartRef.current = true;
+    const timer = window.setTimeout(() => {
+      void runConfirm();
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [runConfirm]);
 
   return (
     <div className="space-y-5">
       <BookingServiceSummaryCard recommendation={recommendation} formData={formData} />
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-small text-red-700">
+          <p>{error}</p>
+          <button
+            type="button"
+            className="mt-3 text-small font-semibold text-red-800 underline"
+            onClick={() => void runConfirm()}
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
       <div className={`grid gap-4 xl:items-start xl:gap-x-5 ${CREATE_DELIVERY_GRID}`}>
         <section
@@ -72,6 +131,16 @@ export default function BookingDelivery({
             <div className="overflow-x-auto pb-1">
               <BookingProgressStepper activeIndex={activeIndex} />
             </div>
+
+            {phaseLabel ? (
+              <p
+                className="text-small text-muted-foreground"
+                role="status"
+                aria-live="polite"
+              >
+                {phaseLabel}
+              </p>
+            ) : null}
 
             <BookingStatusBanners
               serviceName={recommendation.serviceName}

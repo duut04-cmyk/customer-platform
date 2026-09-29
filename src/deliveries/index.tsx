@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import DashboardStats from "@/dashboard/components/DashboardStats";
 import DeliveryNetworkCard from "@/dashboard/components/DeliveryNetworkCard";
-import DeliveryPerformanceCard from "@/dashboard/components/DeliveryPerformanceCard";
 import SafetyComplianceCard from "@/dashboard/components/SafetyComplianceCard";
 import {
   DASHBOARD_MAIN,
@@ -32,7 +31,6 @@ export default function DeliveriesHistory() {
 
           <aside className={DASHBOARD_SIDEBAR_STACK}>
             <DeliveryNetworkCard />
-            <DeliveryPerformanceCard />
             <SafetyComplianceCard className={DASHBOARD_SIDEBAR_FULL_SPAN} />
           </aside>
         </div>

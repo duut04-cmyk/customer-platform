@@ -12,6 +12,10 @@ export function getDeliveryStatusMessage(status: DeliveryStatus): string {
       return "Your delivery is booked.";
     case "driver_assigned":
       return "A delivery partner has been assigned.";
+    case "pickup_otp_pending":
+      return "Verify the pickup code to continue.";
+    case "delivery_otp_pending":
+      return "Verify the delivery code to complete handoff.";
     case "picked_up":
       return "Your package has been picked up.";
     case "in_transit":
@@ -25,8 +29,10 @@ export function isActiveDeliveryStatus(status: DeliveryStatus): boolean {
   return (
     status === "booked" ||
     status === "driver_assigned" ||
+    status === "pickup_otp_pending" ||
     status === "picked_up" ||
-    status === "in_transit"
+    status === "in_transit" ||
+    status === "delivery_otp_pending"
   );
 }
 
@@ -36,6 +42,10 @@ export function getTrackingHeroTitle(status: DeliveryStatus): string {
       return "Delivery booked";
     case "driver_assigned":
       return "Driver assigned";
+    case "pickup_otp_pending":
+      return "Verify pickup";
+    case "delivery_otp_pending":
+      return "Verify delivery";
     case "picked_up":
       return "Package picked up";
     case "in_transit":

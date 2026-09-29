@@ -10,7 +10,8 @@ import DashboardSearch from "@/dashboard/components/DashboardSearch";
 import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
 import { filterByDatePeriod, type DatePeriod } from "@/utils/datePeriods";
 import { getFilterCounts, searchDeliveries } from "@/utils/dashboardStats";
-import { filterDeliveries, MOCK_DELIVERIES } from "../mockDeliveries";
+import { filterDeliveries } from "../filters";
+import { useDeliveriesList } from "../hooks/useDeliveriesList";
 import type { DeliveryFilter } from "../types";
 
 const filterOptions: { id: DeliveryFilter; label: string }[] = [
@@ -33,10 +34,11 @@ function DeliveriesHistoryPanelContent() {
   const searchQuery = searchParams.get("q") ?? "";
   const [filter, setFilter] = useState<DeliveryFilter>("all");
   const [datePeriod, setDatePeriod] = useState<DatePeriod>("last_7_days");
+  const { deliveries: apiDeliveries, loading, error } = useDeliveriesList(100);
 
   const dateFiltered = useMemo(
-    () => filterByDatePeriod(MOCK_DELIVERIES, datePeriod),
-    [datePeriod],
+    () => filterByDatePeriod(apiDeliveries, datePeriod),
+    [apiDeliveries, datePeriod],
   );
 
   const filterCounts = useMemo(() => getFilterCounts(dateFiltered), [dateFiltered]);
@@ -50,8 +52,19 @@ function DeliveriesHistoryPanelContent() {
 
   const isEmpty = deliveries.length === 0;
 
+  if (loading) {
+    return (
+      <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
+    );
+  }
+
   return (
     <section className="min-w-0 rounded-xl border border-border bg-background">
+      {error && (
+        <p className="border-b border-border px-4 py-3 text-small text-red-600 sm:px-5">
+          {error}
+        </p>
+      )}
       <div className="flex items-center gap-2 px-4 py-3 sm:px-5 lg:landscape:gap-3">
         <Suspense
           fallback={

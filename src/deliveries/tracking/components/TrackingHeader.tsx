@@ -1,6 +1,6 @@
 import BackButton from "@/dashboard/components/BackButton";
 import type { Delivery } from "../../types";
-import { deliveryRoutePath } from "../../mockDeliveries";
+import { deliveryRoutePath } from "../../paths";
 
 type TrackingHeaderProps = {
   delivery: Delivery;

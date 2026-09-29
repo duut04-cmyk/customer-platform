@@ -15,11 +15,13 @@ import { GoogleIcon, LoadingSpinner } from "./icons";
 type GoogleButtonProps = {
   disabled?: boolean;
   redirectTo?: string;
+  onAuthSuccess?: () => void;
 };
 
 export default function GoogleButton({
   disabled = false,
   redirectTo = "/dashboard",
+  onAuthSuccess,
 }: GoogleButtonProps) {
   const router = useRouter();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -36,7 +38,7 @@ export default function GoogleButton({
       signingInRef.current = true;
       setSigningIn(true);
       try {
-        await completeGoogleLogin(credential, router, redirectTo);
+        await completeGoogleLogin(credential, router, redirectTo, onAuthSuccess);
         toast.success("Signed in successfully.");
       } catch (cause) {
         toast.error(getAuthErrorMessage(cause, "Google sign-in failed."));
@@ -45,7 +47,7 @@ export default function GoogleButton({
         setSigningIn(false);
       }
     },
-    [redirectTo, router],
+    [onAuthSuccess, redirectTo, router],
   );
 
   const canUseGoogle = Boolean(clientId) && !disabled;

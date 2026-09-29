@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Delivery } from "@/deliveries/types";
 import { formatInr } from "@/deliveries/pricing";
-import { deliveryRoutePath } from "@/deliveries/mockDeliveries";
+import { deliveryRoutePath } from "@/deliveries/paths";
 import {
   getCategoryIconBg,
   getListDateParts,
