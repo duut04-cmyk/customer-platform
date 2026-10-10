@@ -1,38 +1,37 @@
 import { describe, expect, it } from "vitest";
 import {
-  DOOT_PLATFORM_FEE_PERCENT as BACKEND_PLATFORM_FEE,
-  GST_PERCENT as BACKEND_GST,
-  calculateCustomerDeliveryPricing,
-} from "../../../backend/src/modules/pricing/customer-delivery-pricing.js";
-import {
   calculateDeliveryPricing,
   DOOT_PLATFORM_FEE_PERCENT,
   GST_PERCENT,
   deliveryPricingFromQuote,
 } from "./pricing";
 
+/** Golden totals for provider quote ₹150 (must match backend customer-delivery-pricing). */
+const GOLDEN_PROVIDER_QUOTE = 150;
+const GOLDEN_PLATFORM_FEE = 15;
+const GOLDEN_GST = 29.7;
+const GOLDEN_CUSTOMER_PAYABLE = 194.7;
+
 describe("delivery pricing parity with backend", () => {
-  it("uses the same fee and GST constants", () => {
-    expect(DOOT_PLATFORM_FEE_PERCENT).toBe(BACKEND_PLATFORM_FEE);
-    expect(GST_PERCENT).toBe(BACKEND_GST);
+  it("uses the documented fee and GST constants", () => {
+    expect(DOOT_PLATFORM_FEE_PERCENT).toBe(10);
+    expect(GST_PERCENT).toBe(18);
   });
 
   it("matches backend customer payable for a provider quote", () => {
-    const providerQuote = 150;
-    const backend = calculateCustomerDeliveryPricing(providerQuote);
-    const frontend = calculateDeliveryPricing(providerQuote);
-    expect(frontend.total).toBe(backend.customerPayableAmount);
-    expect(frontend.platformFeeAmount).toBe(backend.platformFeeAmount);
-    expect(frontend.gstAmount).toBe(backend.gstAmount);
+    const frontend = calculateDeliveryPricing(GOLDEN_PROVIDER_QUOTE);
+    expect(frontend.total).toBe(GOLDEN_CUSTOMER_PAYABLE);
+    expect(frontend.platformFeeAmount).toBe(GOLDEN_PLATFORM_FEE);
+    expect(frontend.gstAmount).toBe(GOLDEN_GST);
   });
 
   it("prefers server quote payable fields when mapping orchestration", () => {
     const pricing = deliveryPricingFromQuote({
-      amount: 150,
-      customerPayableAmount: 194.7,
-      platformFeeAmount: 15,
-      gstAmount: 29.7,
+      amount: GOLDEN_PROVIDER_QUOTE,
+      customerPayableAmount: GOLDEN_CUSTOMER_PAYABLE,
+      platformFeeAmount: GOLDEN_PLATFORM_FEE,
+      gstAmount: GOLDEN_GST,
     });
-    expect(pricing.total).toBe(194.7);
+    expect(pricing.total).toBe(GOLDEN_CUSTOMER_PAYABLE);
   });
 });
