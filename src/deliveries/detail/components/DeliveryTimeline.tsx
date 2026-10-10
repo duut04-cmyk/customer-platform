@@ -17,6 +17,16 @@ function StepIndicator({
   event: TimelineEvent;
   stepNumber: number;
 }) {
+  if (event.id === "cancelled" || event.id === "failed") {
+    return (
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-white">
+        <span className="text-caption font-bold" aria-hidden="true">
+          ×
+        </span>
+      </span>
+    );
+  }
+
   if (event.state === "complete") {
     return (
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
@@ -67,6 +77,11 @@ function CompactTimeline({ events }: { events: TimelineEvent[] }) {
             <p className="text-body font-medium text-foreground">{event.label}</p>
             {event.time && (
               <p className="text-caption text-muted-foreground">{event.time}</p>
+            )}
+            {event.description && (
+              <p className="mt-0.5 text-caption text-muted-foreground">
+                {event.description}
+              </p>
             )}
           </div>
         </li>
@@ -124,11 +139,13 @@ export default function DeliveryTimeline({
                 <div className="min-w-0 pt-0.5">
                   <p
                     className={`text-small font-semibold ${
-                      event.state === "current"
-                        ? "text-accent"
-                        : event.state === "complete"
-                          ? "text-foreground"
-                          : "text-muted-foreground"
+                      event.id === "cancelled" || event.id === "failed"
+                        ? "text-red-700"
+                        : event.state === "current"
+                          ? "text-accent"
+                          : event.state === "complete"
+                            ? "text-foreground"
+                            : "text-muted-foreground"
                     }`}
                   >
                     {event.label}
@@ -136,6 +153,11 @@ export default function DeliveryTimeline({
                   {event.time && (
                     <p className="mt-0.5 text-caption text-muted-foreground">
                       {event.time}
+                    </p>
+                  )}
+                  {event.description && (
+                    <p className="mt-0.5 text-caption text-muted-foreground">
+                      Reason: {event.description}
                     </p>
                   )}
                 </div>

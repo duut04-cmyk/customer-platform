@@ -1,5 +1,10 @@
 import type { DeliveryHistoryDetail } from "@/api/deliveries/delivery.types";
-import type { DeliveryStatus, TimelineEvent, TimelineEventState } from "./types";
+import type {
+  Delivery,
+  DeliveryStatus,
+  TimelineEvent,
+  TimelineEventState,
+} from "./types";
 
 export function formatEventTime(iso: string | null | undefined): string | undefined {
   if (!iso) return undefined;
@@ -147,12 +152,29 @@ export function buildDetailTimelineFromHistory(
 ): TimelineEvent[] {
   if (frontendStatus === "cancelled" || frontendStatus === "failed") {
     const confirmedTime = resolveDetailStepTime(DETAIL_STEPS[0], history);
-    return DETAIL_STEPS.map((step, index) => ({
-      id: step.id,
-      label: step.label,
-      time: index === 0 ? confirmedTime : undefined,
-      state: (index === 0 ? "complete" : "upcoming") as TimelineEventState,
-    }));
+    const cancellation = history.cancellation;
+    const terminalTime = formatEventTime(cancellation?.cancelledAt) ?? confirmedTime;
+    const reason =
+      cancellation?.reasonMessage ??
+      (cancellation?.reasonCode
+        ? cancellation.reasonCode.replaceAll("_", " ")
+        : undefined);
+
+    return [
+      {
+        id: "order_confirmed",
+        label: "Order confirmed",
+        time: confirmedTime,
+        state: "complete" as TimelineEventState,
+      },
+      {
+        id: frontendStatus === "cancelled" ? "cancelled" : "failed",
+        label: frontendStatus === "cancelled" ? "Cancelled" : "Failed",
+        time: terminalTime,
+        description: reason,
+        state: "complete" as TimelineEventState,
+      },
+    ];
   }
 
   if (frontendStatus === "delivered") {
@@ -332,5 +354,123 @@ export function buildTrackingTimelineFromHistory(
       return { ...step, state: "current" as TimelineEventState };
     }
     return { ...step, state: "upcoming" as TimelineEventState };
+  });
+}
+
+const CUSTOMER_TRACKING_PROGRESS_STEPS = [
+  { id: "to_pickup", label: "Rider on the way to pickup" },
+  { id: "pickup_received", label: "Pickup received" },
+  { id: "to_dropoff", label: "On the way to drop-off" },
+  { id: "arriving", label: "Arriving" },
+] as const;
+
+const TRACKING_PROGRESS_STATUS_INDEX: Record<DeliveryStatus, number> = {
+  booked: 0,
+  driver_assigned: 0,
+  pickup_otp_pending: 0,
+  picked_up: 1,
+  in_transit: 2,
+  delivery_otp_pending: 3,
+  delivered: 4,
+  cancelled: -1,
+  failed: -1,
+};
+
+function findTrackingEventTime(
+  events: Delivery["trackingEvents"],
+  matchers: string[],
+): string | undefined {
+  if (!events?.length) return undefined;
+  for (const event of events) {
+    const normalized = event.label.toLowerCase();
+    if (matchers.some((m) => normalized.includes(m.toLowerCase()))) {
+      return event.time;
+    }
+  }
+  return undefined;
+}
+
+function updatesForStep(
+  events: Delivery["trackingEvents"],
+  stepIndex: number,
+): string | undefined {
+  if (!events?.length) return undefined;
+
+  const matchers: Record<number, string[]> = {
+    0: ["driver assigned", "assigned"],
+    1: ["picked up", "pickup"],
+    2: ["in transit", "transit", "location"],
+    3: ["arriving", "delivery", "delivered"],
+  };
+
+  const keys = matchers[stepIndex] ?? [];
+  const matched = events.filter((event) => {
+    const normalized = event.label.toLowerCase();
+    return keys.some((key) => normalized.includes(key));
+  });
+
+  if (matched.length === 0) return undefined;
+  return matched
+    .slice(0, 3)
+    .map((event) => (event.time ? `${event.label} · ${event.time}` : event.label))
+    .join(" · ");
+}
+
+/** Single customer-facing progress rail for the live tracking page. */
+export function buildCustomerTrackingProgressTimeline(
+  delivery: Delivery,
+): TimelineEvent[] {
+  const milestones = delivery.trackingMilestones ?? {};
+  const events = delivery.trackingEvents;
+  const currentIndex = TRACKING_PROGRESS_STATUS_INDEX[delivery.status];
+
+  const stepTimes: (string | undefined)[] = [
+    findTrackingEventTime(events, ["driver assigned"]) ?? delivery.bookedAtLabel,
+    milestones.pickedUp ?? findTrackingEventTime(events, ["picked up"]),
+    milestones.onTheWay ?? findTrackingEventTime(events, ["in transit"]),
+    milestones.arrivingSoon ??
+      findTrackingEventTime(events, ["arriving"]) ??
+      (delivery.status === "delivery_otp_pending" || delivery.status === "in_transit"
+        ? delivery.estimatedArrival !== "Pending update"
+          ? delivery.estimatedArrival
+          : undefined
+        : undefined),
+  ];
+
+  if (currentIndex < 0) {
+    return CUSTOMER_TRACKING_PROGRESS_STEPS.map((step, index) => ({
+      id: step.id,
+      label: step.label,
+      time: stepTimes[index],
+      state:
+        index === 0
+          ? ("complete" as TimelineEventState)
+          : ("upcoming" as TimelineEventState),
+    }));
+  }
+
+  if (currentIndex >= CUSTOMER_TRACKING_PROGRESS_STEPS.length) {
+    return CUSTOMER_TRACKING_PROGRESS_STEPS.map((step, index) => ({
+      id: step.id,
+      label: step.label,
+      time: stepTimes[index],
+      state: "complete" as TimelineEventState,
+    }));
+  }
+
+  return CUSTOMER_TRACKING_PROGRESS_STEPS.map((step, index) => {
+    let state: TimelineEventState = "upcoming";
+    if (index < currentIndex) state = "complete";
+    else if (index === currentIndex) state = "current";
+
+    const description = state === "current" ? updatesForStep(events, index) : undefined;
+
+    return {
+      id: step.id,
+      label: step.label,
+      time: stepTimes[index],
+      description,
+      state,
+    };
   });
 }

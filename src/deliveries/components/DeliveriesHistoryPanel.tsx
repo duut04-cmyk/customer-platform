@@ -11,8 +11,8 @@ import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
 import { filterByDatePeriod, type DatePeriod } from "@/utils/datePeriods";
 import { getFilterCounts, searchDeliveries } from "@/utils/dashboardStats";
 import { filterDeliveries } from "../filters";
-import { useDeliveriesList } from "../hooks/useDeliveriesList";
-import type { DeliveryFilter } from "../types";
+import type { Delivery, DeliveryFilter } from "../types";
+import DeliveriesListSkeleton from "./DeliveriesListSkeleton";
 
 const filterOptions: { id: DeliveryFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -29,12 +29,24 @@ const FILTER_LABELS: Record<Exclude<DeliveryFilter, "all">, string> = {
   cancelled: "cancelled",
 };
 
-function DeliveriesHistoryPanelContent() {
+type DeliveriesHistoryPanelProps = {
+  deliveries: Delivery[];
+  datePeriod: DatePeriod;
+  onDatePeriodChange: (period: DatePeriod) => void;
+  loading?: boolean;
+  error?: string | null;
+};
+
+function DeliveriesHistoryPanelContent({
+  deliveries: apiDeliveries,
+  datePeriod,
+  onDatePeriodChange,
+  loading = false,
+  error = null,
+}: DeliveriesHistoryPanelProps) {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
   const [filter, setFilter] = useState<DeliveryFilter>("all");
-  const [datePeriod, setDatePeriod] = useState<DatePeriod>("last_7_days");
-  const { deliveries: apiDeliveries, loading, error } = useDeliveriesList(100);
 
   const dateFiltered = useMemo(
     () => filterByDatePeriod(apiDeliveries, datePeriod),
@@ -53,9 +65,7 @@ function DeliveriesHistoryPanelContent() {
   const isEmpty = deliveries.length === 0;
 
   if (loading) {
-    return (
-      <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
-    );
+    return <DeliveriesListSkeleton />;
   }
 
   return (
@@ -80,7 +90,7 @@ function DeliveriesHistoryPanelContent() {
         {/* Mobile + tablet portrait: calendar icon */}
         <DatePeriodSelect
           value={datePeriod}
-          onChange={setDatePeriod}
+          onChange={onDatePeriodChange}
           variant="icon"
           className="shrink-0 lg:landscape:hidden xl:hidden"
         />
@@ -88,7 +98,7 @@ function DeliveriesHistoryPanelContent() {
         {/* Tablet landscape + desktop: labeled date dropdown */}
         <DatePeriodSelect
           value={datePeriod}
-          onChange={setDatePeriod}
+          onChange={onDatePeriodChange}
           className="ml-auto hidden w-[11.5rem] shrink-0 lg:landscape:block xl:block"
         />
       </div>
@@ -159,14 +169,14 @@ function DeliveriesHistoryPanelContent() {
   );
 }
 
-export default function DeliveriesHistoryPanel() {
+export default function DeliveriesHistoryPanel(props: DeliveriesHistoryPanelProps) {
   return (
     <Suspense
       fallback={
         <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
       }
     >
-      <DeliveriesHistoryPanelContent />
+      <DeliveriesHistoryPanelContent {...props} />
     </Suspense>
   );
 }

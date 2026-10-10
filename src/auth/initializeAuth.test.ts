@@ -99,6 +99,29 @@ describe("initializeAuth", () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 
+  it("clears admin sessions from the customer app", async () => {
+    setSessionTokens({ accessToken: "access", refreshToken: "refresh" });
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      success: true,
+      data: {
+        user: {
+          id: "admin-1",
+          name: "Dutt Admin",
+          email: "admin@example.com",
+          phone: null,
+          emailVerified: true,
+          status: "ACTIVE",
+          role: "ADMIN",
+        },
+      },
+    });
+
+    await initializeAuth();
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(useAuthStore.getState().isInitializing).toBe(false);
+  });
+
   it("clears state when no session exists", async () => {
     await initializeAuth();
 

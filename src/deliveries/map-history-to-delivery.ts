@@ -3,6 +3,7 @@ import type {
   CustomerDriverResponse,
   DeliveryHistoryDetail,
   DeliveryListItemDto,
+  TrackingPointDto,
 } from "@/api/deliveries/delivery.types";
 import {
   toCustomerServiceName,
@@ -179,13 +180,27 @@ export function mapHistoryToDelivery(history: DeliveryHistoryDetail): Delivery {
       ? formatEventTime(history.otp.delivery?.verifiedAt)
       : undefined;
 
+  const packagePhotoUrls = (history.package.photos ?? [])
+    .map((photo) => photo.url)
+    .filter((url): url is string => Boolean(url));
+
   return {
     id: history.delivery.id,
     reference: history.delivery.reference,
     status: frontendStatus,
     statusLabel: STATUS_LABELS[frontendStatus],
-    pickup: pickupLoc,
-    dropoff: dropLoc,
+    pickup: {
+      ...pickupLoc,
+      address: history.pickup.addressText,
+      latitude: history.pickup.latitude,
+      longitude: history.pickup.longitude,
+    },
+    dropoff: {
+      ...dropLoc,
+      address: history.drop.addressText,
+      latitude: history.drop.latitude,
+      longitude: history.drop.longitude,
+    },
     packageType: BACKEND_PACKAGE_LABELS[history.package.packageType] ?? "Package",
     weight: `${history.package.weightKg} kg`,
     dimensions: formatDimensions(
@@ -227,10 +242,22 @@ export function mapHistoryToDelivery(history: DeliveryHistoryDetail): Delivery {
     customerRating: history.rating?.deliveryRating,
     ratedAt: history.rating?.submittedAt,
     customerRatingComment: history.feedback?.comment ?? undefined,
+    customerExperienceRatings: history.rating
+      ? {
+          driverRating: history.rating.driverRating,
+          platformRating: history.rating.platformRating ?? 0,
+          deliveryRating: history.rating.deliveryRating,
+          timelinessRating: history.rating.timelinessRating ?? 0,
+          packageHandlingRating: history.rating.packageHandlingRating ?? 0,
+          servicePresentationRating: history.rating.servicePresentationRating ?? 0,
+        }
+      : undefined,
     cancelReason,
     cancelledAtLabel: cancellation?.cancelledAt
       ? formatEventTime(cancellation.cancelledAt)
       : undefined,
+    packagePhotoUrls: packagePhotoUrls.length > 0 ? packagePhotoUrls : undefined,
+    packagePhotoUrl: packagePhotoUrls[0],
   };
 }
 
@@ -244,8 +271,14 @@ export function mapListItemToDelivery(item: DeliveryListItemDto): Delivery {
     reference: item.reference,
     status: frontendStatus,
     statusLabel: STATUS_LABELS[frontendStatus],
-    pickup: pickupLoc,
-    dropoff: dropLoc,
+    pickup: {
+      ...pickupLoc,
+      address: item.pickup.addressText,
+    },
+    dropoff: {
+      ...dropLoc,
+      address: item.drop.addressText,
+    },
     packageType: BACKEND_PACKAGE_LABELS[item.packageType] ?? "Package",
     weight: `${item.weightKg} kg`,
     dimensions: "—",
@@ -253,12 +286,50 @@ export function mapListItemToDelivery(item: DeliveryListItemDto): Delivery {
     dateLabel: formatEventTime(item.createdAt) ?? "—",
     listTimeLabel: formatEventTime(item.createdAt) ?? "—",
     createdAt: item.createdAt,
-    estimatedArrival: "—",
+    estimatedArrival: "Pending update",
     driverInitials: "—",
     timeline: buildDefaultTimeline(frontendStatus),
+    selectedService: toCustomerServiceName(),
+    serviceType: "Standard",
   };
 }
 
 export function isActiveBackendStatus(status: BackendDeliveryStatus): boolean {
   return !["DELIVERED", "CANCELLED", "FAILED"].includes(status);
+}
+
+/** Merge lightweight poll payloads into an existing delivery (track/detail background refresh). */
+export function patchDeliveryFromLivePoll(
+  current: Delivery,
+  input: {
+    backendStatus: BackendDeliveryStatus;
+    tracking: TrackingPointDto | null;
+    driverResponse: CustomerDriverResponse | null;
+  },
+): { next: Delivery; statusChanged: boolean } {
+  const frontendStatus = mapBackendStatusToFrontend(input.backendStatus);
+  const statusChanged = frontendStatus !== current.status;
+  const driver = input.driverResponse
+    ? mapDriver(input.driverResponse, frontendStatus)
+    : current.driver;
+
+  let estimatedArrival = current.estimatedArrival;
+  if (input.tracking?.eta) {
+    estimatedArrival = formatEventTime(input.tracking.eta) ?? estimatedArrival;
+  }
+
+  return {
+    statusChanged,
+    next: {
+      ...current,
+      status: frontendStatus,
+      statusLabel: STATUS_LABELS[frontendStatus],
+      driver,
+      driverInitials: driver?.initials ?? current.driverInitials,
+      trackingLatitude: input.tracking?.latitude ?? current.trackingLatitude ?? null,
+      trackingLongitude: input.tracking?.longitude ?? current.trackingLongitude ?? null,
+      trackingUrl: input.tracking?.trackingUrl ?? current.trackingUrl ?? null,
+      estimatedArrival,
+    },
+  };
 }

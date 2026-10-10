@@ -4,6 +4,7 @@ import {
   AuthenticatedDesktopActions,
   AuthenticatedMobilePageHeader,
 } from "@/dashboard/components/AuthenticatedPageHeader";
+import { getDeliveryDisplayReference } from "../../delivery-display-reference";
 import type { Delivery } from "../../types";
 
 type TrackingPageHeaderProps = {
@@ -44,7 +45,7 @@ function TrackingTitle({
       <p className="text-body text-muted-foreground">{subtitle}</p>
       {variant === "in_progress" && (
         <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-          {delivery.id}
+          {getDeliveryDisplayReference(delivery)}
         </p>
       )}
     </div>

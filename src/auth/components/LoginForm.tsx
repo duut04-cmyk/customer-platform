@@ -5,7 +5,7 @@ import { useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { login } from "@/api/auth";
 import { getAuthErrorMessage } from "@/auth/auth-errors";
-import { establishSession } from "@/auth/establishSession";
+import { establishCustomerSession } from "@/auth/establishSession";
 import Button from "@/common/components/Button";
 import Input from "@/common/components/Input";
 import { authFormStackClassName } from "@/auth/auth-modal-layout";
@@ -56,7 +56,7 @@ export default function LoginForm({
     setLoading(true);
     try {
       const response = await login({ email, password });
-      establishSession(response.data, response.data.user);
+      establishCustomerSession(response.data, response.data.user);
       onAuthSuccess?.();
       router.replace(redirectTo);
       toast.success("Signed in successfully.");

@@ -99,6 +99,7 @@ export type DeliveryDetailDto = {
       storageProvider: string;
       mimeType: string | null;
       fileSizeBytes: number | null;
+      url?: string | null;
     }>;
   };
   requirements: BackendHandlingRequirement[];
@@ -144,7 +145,13 @@ export type PaginatedDeliveriesDto = {
 export type CustomerSelectedOptionDto = {
   providerCode: string;
   serviceCode: string | null;
-  quote: { amount: number; currency: string };
+  quote: {
+    amount: number;
+    currency: string;
+    customerPayableAmount?: number;
+    platformFeeAmount?: number;
+    gstAmount?: number;
+  };
   estimatedDeliveryAt: string | null;
   availability: {
     known: boolean;
@@ -176,7 +183,13 @@ export type CustomerBookingDto = {
   serviceCode: string | null;
   status: string;
   providerReference: string | null;
-  quote: { amount: number; currency: string };
+  quote: {
+    amount: number;
+    currency: string;
+    customerPayableAmount?: number;
+    platformFeeAmount?: number;
+    gstAmount?: number;
+  };
   bookedAt: string | null;
 };
 
@@ -247,7 +260,13 @@ export type DeliveryHistoryDetail = {
     selectedOption: {
       providerCode: string;
       serviceCode: string | null;
-      quote: { amount: number; currency: string };
+      quote: {
+        amount: number;
+        currency: string;
+        customerPayableAmount?: number;
+        platformFeeAmount?: number;
+        gstAmount?: number;
+      };
       selectionReason: string | null;
     } | null;
   } | null;
@@ -258,7 +277,13 @@ export type DeliveryHistoryDetail = {
     status: string;
     providerReference: string | null;
     providerOrderId?: string | null;
-    quote: { amount: number; currency: string };
+    quote: {
+      amount: number;
+      currency: string;
+      customerPayableAmount?: number;
+      platformFeeAmount?: number;
+      gstAmount?: number;
+    };
     bookedAt: string | null;
   } | null;
   driver: CustomerDriverResponse;
@@ -281,7 +306,11 @@ export type DeliveryHistoryDetail = {
   };
   rating: {
     driverRating: number;
+    platformRating: number | null;
     deliveryRating: number;
+    timelinessRating: number | null;
+    packageHandlingRating: number | null;
+    servicePresentationRating: number | null;
     submittedAt: string;
   } | null;
   feedback: {
@@ -315,6 +344,16 @@ export type ListDeliveriesQuery = {
 export type SubmitRatingBody = {
   driverRating: number;
   deliveryRating: number;
+};
+
+export type SubmitDeliveryExperienceBody = {
+  driverRating: number;
+  platformRating: number;
+  deliveryRating: number;
+  timelinessRating: number;
+  packageHandlingRating: number;
+  servicePresentationRating: number;
+  comment?: string | null;
 };
 
 export type SubmitFeedbackBody = {

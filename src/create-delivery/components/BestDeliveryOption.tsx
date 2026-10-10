@@ -2,6 +2,7 @@
 
 import type { ReactElement } from "react";
 import Button from "@/common/components/Button";
+import { isDevMockOrchestrationEnabled } from "@/config/dev-orchestration";
 import { isCashfreeCheckoutEnabled } from "@/config/payment-env";
 import { IconArrowRight, IconClock, IconTruck } from "@/dashboard/components/icons";
 import { getPartnerMark } from "@/utils/deliveryDisplayHelpers";
@@ -55,9 +56,17 @@ export default function BestDeliveryOption({
       aria-labelledby="recommended-service-heading"
     >
       <div className="space-y-5">
-        <span className="inline-flex rounded-pill bg-surface-accent px-3 py-1 text-caption font-semibold text-accent">
-          Recommended
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex rounded-pill bg-surface-accent px-3 py-1 text-caption font-semibold text-accent">
+            Recommended
+          </span>
+          {isDevMockOrchestrationEnabled() &&
+          recommendation.tagline.includes("Dev mock quote") ? (
+            <span className="inline-flex rounded-pill border border-amber-200 bg-amber-50 px-3 py-1 text-caption font-medium text-amber-900">
+              Dev mock quote — for UI / Cashfree sandbox testing
+            </span>
+          ) : null}
+        </div>
 
         <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 gap-3">

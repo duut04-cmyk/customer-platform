@@ -93,18 +93,18 @@ export default function ReviewStep({ data, onEdit, onFindDelivery }: ReviewStepP
           {data.packageDescription.trim() ? (
             <ReviewRow label="Contents" value={data.packageDescription.trim()} />
           ) : null}
-          {data.packagePhotoUrls.length > 0 && (
+          {data.packagePhotos.length > 0 && (
             <div>
               <p className="text-caption text-muted-foreground">Photos</p>
               <div className="mt-1 flex flex-wrap gap-2">
-                {data.packagePhotoUrls.map((url, index) => (
+                {data.packagePhotos.map((photo, index) => (
                   <div
-                    key={`${url}-${index}`}
+                    key={photo.id}
                     className="h-16 w-16 overflow-hidden rounded-lg border border-border"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={url}
+                      src={photo.previewUrl}
                       alt={`Package ${index + 1}`}
                       className="h-full w-full object-cover"
                     />

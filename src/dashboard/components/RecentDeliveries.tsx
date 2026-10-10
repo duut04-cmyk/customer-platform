@@ -10,9 +10,9 @@ import DatePeriodSelect from "@/dashboard/components/DatePeriodSelect";
 import { filterByDatePeriod, type DatePeriod } from "@/utils/datePeriods";
 import { getFilterCounts, searchDeliveries } from "@/utils/dashboardStats";
 import { filterDeliveries } from "@/deliveries/filters";
-import { useDeliveriesList } from "@/deliveries/hooks/useDeliveriesList";
-import type { DeliveryFilter } from "@/deliveries/types";
+import type { Delivery, DeliveryFilter } from "@/deliveries/types";
 import DeliveryCard from "./DeliveryCard";
+import RecentDeliveriesSkeleton from "./RecentDeliveriesSkeleton";
 import { IconChevronRight } from "./icons";
 
 const filterOptions: { id: DeliveryFilter; label: string; mobileLabel?: string }[] = [
@@ -23,34 +23,44 @@ const filterOptions: { id: DeliveryFilter; label: string; mobileLabel?: string }
   { id: "cancelled", label: "Cancelled", mobileLabel: "Cancelled" },
 ];
 
-export default function RecentDeliveries() {
+type RecentDeliveriesProps = {
+  deliveries: Delivery[];
+  datePeriod: DatePeriod;
+  onDatePeriodChange: (period: DatePeriod) => void;
+  loading?: boolean;
+  error?: string | null;
+};
+
+function RecentDeliveriesContent({
+  deliveries: apiDeliveries,
+  datePeriod,
+  onDatePeriodChange,
+  loading = false,
+  error = null,
+}: RecentDeliveriesProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
   const [filter, setFilter] = useState<DeliveryFilter>("all");
-  const [datePeriod, setDatePeriod] = useState<DatePeriod>("last_7_days");
 
-  const { deliveries: apiDeliveries, loading, error } = useDeliveriesList(50);
+  const dateFiltered = useMemo(
+    () => filterByDatePeriod(apiDeliveries, datePeriod),
+    [apiDeliveries, datePeriod],
+  );
 
-  const filterCounts = useMemo(() => {
-    const dateFiltered = filterByDatePeriod(apiDeliveries, datePeriod);
-    return getFilterCounts(dateFiltered);
-  }, [apiDeliveries, datePeriod]);
+  const filterCounts = useMemo(() => getFilterCounts(dateFiltered), [dateFiltered]);
 
   const deliveries = useMemo(() => {
-    let list = apiDeliveries.slice(0, 10);
-    list = filterByDatePeriod(list, datePeriod);
+    let list = dateFiltered;
     list = filterDeliveries(list, filter);
     list = searchDeliveries(list, searchQuery);
-    return list;
-  }, [apiDeliveries, filter, datePeriod, searchQuery]);
+    return list.slice(0, 10);
+  }, [dateFiltered, filter, searchQuery]);
 
   const isEmpty = deliveries.length === 0;
 
-  if (loading) {
-    return (
-      <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
-    );
+  if (loading && apiDeliveries.length === 0) {
+    return <RecentDeliveriesSkeleton />;
   }
 
   return (
@@ -78,7 +88,6 @@ export default function RecentDeliveries() {
         </Link>
       </div>
 
-      {/* Same toolbar as deliveries: search + calendar icon (mobile), labeled date (desktop) */}
       <div className="flex items-center gap-2 px-4 py-3 sm:px-5 lg:landscape:gap-3">
         <Suspense
           fallback={
@@ -93,14 +102,14 @@ export default function RecentDeliveries() {
 
         <DatePeriodSelect
           value={datePeriod}
-          onChange={setDatePeriod}
+          onChange={onDatePeriodChange}
           variant="icon"
           className="shrink-0 lg:landscape:hidden xl:hidden"
         />
 
         <DatePeriodSelect
           value={datePeriod}
-          onChange={setDatePeriod}
+          onChange={onDatePeriodChange}
           className="ml-auto hidden w-[11.5rem] shrink-0 lg:landscape:block xl:block"
         />
       </div>
@@ -174,5 +183,13 @@ export default function RecentDeliveries() {
         </ul>
       )}
     </section>
+  );
+}
+
+export default function RecentDeliveries(props: RecentDeliveriesProps) {
+  return (
+    <Suspense fallback={<RecentDeliveriesSkeleton />}>
+      <RecentDeliveriesContent {...props} />
+    </Suspense>
   );
 }

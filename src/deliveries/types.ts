@@ -18,15 +18,28 @@ export type TimelineEvent = {
   id: string;
   label: string;
   time?: string;
+  /** Optional secondary line (e.g. cancellation reason). */
+  description?: string;
   state: TimelineEventState;
 };
 
 export type DeliveryLocation = {
   city: string;
   address: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export type DriverStatus = "assigned" | "arriving" | "picked_up" | "in_transit";
+
+export type CustomerExperienceRatings = {
+  driverRating: number;
+  platformRating: number;
+  deliveryRating: number;
+  timelinessRating: number;
+  packageHandlingRating: number;
+  servicePresentationRating: number;
+};
 
 export type DeliveryDriver = {
   name: string;
@@ -94,6 +107,7 @@ export type Delivery = {
   cancelReason?: string;
   customerRating?: number;
   customerRatingComment?: string;
+  customerExperienceRatings?: CustomerExperienceRatings;
   ratedAt?: string;
   trackingMilestones?: {
     pickedUp?: string;
@@ -249,11 +263,40 @@ export function buildCustomerDetailTimeline(delivery: Delivery): TimelineEvent[]
 
   const idx = currentIndex[delivery.status];
 
-  if (delivery.status === "cancelled" || delivery.status === "failed") {
-    return steps.map((step, index) => ({
-      ...step,
-      state: (index === 0 ? "complete" : "upcoming") as TimelineEventState,
-    }));
+  if (delivery.status === "cancelled") {
+    return [
+      {
+        id: "order_confirmed",
+        label: "Order confirmed",
+        time: delivery.bookedAtLabel ?? delivery.dateLabel,
+        state: "complete" as TimelineEventState,
+      },
+      {
+        id: "cancelled",
+        label: "Cancelled",
+        time: delivery.cancelledAtLabel,
+        description: delivery.cancelReason,
+        state: "complete" as TimelineEventState,
+      },
+    ];
+  }
+
+  if (delivery.status === "failed") {
+    return [
+      {
+        id: "order_confirmed",
+        label: "Order confirmed",
+        time: delivery.bookedAtLabel ?? delivery.dateLabel,
+        state: "complete" as TimelineEventState,
+      },
+      {
+        id: "failed",
+        label: "Failed",
+        time: delivery.cancelledAtLabel ?? delivery.dateLabel,
+        description: delivery.cancelReason,
+        state: "complete" as TimelineEventState,
+      },
+    ];
   }
 
   if (delivery.status === "delivered") {

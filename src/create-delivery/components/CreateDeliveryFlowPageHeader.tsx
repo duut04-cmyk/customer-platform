@@ -43,7 +43,7 @@ export default function CreateDeliveryFlowPageHeader({
   return (
     <div className="bg-white">
       <div className="hidden xl:block">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 overflow-visible">
           <div className="min-w-0">
             {showBackToDashboard ? <BackToDashboardLink /> : null}
             <div className={showBackToDashboard ? "mt-3" : undefined}>

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import type { Delivery } from "@/deliveries/types";
 import { formatInr } from "@/deliveries/pricing";
+import { getDeliveryDisplayReference } from "@/deliveries/delivery-display-reference";
 import { deliveryRoutePath } from "@/deliveries/paths";
 import {
   getCategoryIconBg,
   getListDateParts,
+  getListRouteLabel,
+  getListServiceLabel,
   getPartnerMark,
   getStatusPillClasses,
   getStatusSubtext,
@@ -80,7 +83,10 @@ export default function DeliveryCard({
   delivery,
   variant = "card",
 }: DeliveryCardProps) {
-  const partner = getPartnerMark(delivery.selectedService);
+  const serviceLabel = getListServiceLabel(delivery);
+  const partner = getPartnerMark(serviceLabel);
+  const routeLabel = getListRouteLabel(delivery);
+  const statusSubtext = getStatusSubtext(delivery);
   const { date, time } = getListDateParts(delivery);
 
   const rowClass =
@@ -102,11 +108,9 @@ export default function DeliveryCard({
 
         <div className="min-w-0">
           <p className="truncate text-small font-semibold text-foreground">
-            {delivery.id}
+            {getDeliveryDisplayReference(delivery)}
           </p>
-          <p className="truncate text-caption text-muted-foreground">
-            {delivery.pickup.city} → {delivery.dropoff.city}
-          </p>
+          <p className="truncate text-caption text-muted-foreground">{routeLabel}</p>
           <p className="mt-0.5 truncate text-caption text-muted-foreground">
             {delivery.packageType} • {delivery.weight}
           </p>
@@ -121,7 +125,7 @@ export default function DeliveryCard({
           </span>
           <div className="min-w-0">
             <p className="truncate text-caption font-medium text-foreground">
-              {delivery.selectedService ?? "—"}
+              {serviceLabel}
             </p>
             {delivery.pricing && (
               <p className="text-caption font-semibold text-foreground">
@@ -138,9 +142,9 @@ export default function DeliveryCard({
             <StatusIcon status={delivery.status} className="h-3 w-3" />
             {delivery.statusLabel}
           </span>
-          <p className="text-[11px] text-muted-foreground">
-            {getStatusSubtext(delivery)}
-          </p>
+          {statusSubtext ? (
+            <p className="text-[11px] text-muted-foreground">{statusSubtext}</p>
+          ) : null}
         </div>
 
         <div className="hidden items-center justify-end gap-2 sm:flex">
@@ -181,9 +185,11 @@ export default function DeliveryCard({
               />
             </div>
             <div className="min-w-0">
-              <p className="text-small font-semibold text-foreground">{delivery.id}</p>
+              <p className="text-small font-semibold text-foreground">
+                {getDeliveryDisplayReference(delivery)}
+              </p>
               <p className="mt-0.5 truncate text-caption text-muted-foreground">
-                {delivery.pickup.city} → {delivery.dropoff.city}
+                {routeLabel}
               </p>
             </div>
           </div>
@@ -230,11 +236,9 @@ export default function DeliveryCard({
 
         <div className="min-w-0">
           <p className="truncate text-small font-semibold text-foreground">
-            {delivery.id}
+            {getDeliveryDisplayReference(delivery)}
           </p>
-          <p className="truncate text-caption text-muted-foreground">
-            {delivery.pickup.city} → {delivery.dropoff.city}
-          </p>
+          <p className="truncate text-caption text-muted-foreground">{routeLabel}</p>
           <p className="mt-0.5 truncate text-caption text-muted-foreground">
             {delivery.packageType} • {delivery.weight}
           </p>
@@ -249,7 +253,7 @@ export default function DeliveryCard({
           </span>
           <div className="min-w-0">
             <p className="truncate text-caption font-medium text-foreground">
-              {delivery.selectedService ?? "—"}
+              {serviceLabel}
             </p>
             {delivery.pricing && (
               <p className="text-caption font-semibold text-foreground">
@@ -266,9 +270,9 @@ export default function DeliveryCard({
             <StatusIcon status={delivery.status} className="h-3 w-3" />
             {delivery.statusLabel}
           </span>
-          <p className="text-[11px] text-muted-foreground">
-            {getStatusSubtext(delivery)}
-          </p>
+          {statusSubtext ? (
+            <p className="text-[11px] text-muted-foreground">{statusSubtext}</p>
+          ) : null}
         </div>
 
         <div className="hidden items-center justify-end gap-2 sm:flex">

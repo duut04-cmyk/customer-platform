@@ -1,10 +1,15 @@
 "use client";
 
-import DeliveryRouteMap from "@/common/components/DeliveryRouteMap";
+import DeliveryMapView from "@/common/components/DeliveryMapView";
 import type { Delivery, DeliveryLocation } from "../../types";
 
-function formatLocation(location: DeliveryLocation): string {
-  return [location.address, location.city].filter(Boolean).join(", ");
+function formatFullLocation(location: DeliveryLocation): string {
+  const address = location.address.trim();
+  const city = location.city.trim();
+  if (!city || address.toLowerCase().includes(city.toLowerCase())) {
+    return address;
+  }
+  return [address, city].filter(Boolean).join(", ");
 }
 
 type TrackingMapProps = {
@@ -12,22 +17,29 @@ type TrackingMapProps = {
 };
 
 export default function TrackingMap({ delivery }: TrackingMapProps) {
-  const pickup = formatLocation(delivery.pickup);
-  const drop = formatLocation(delivery.dropoff);
+  const driver =
+    delivery.trackingLatitude != null && delivery.trackingLongitude != null
+      ? {
+          address: "Driver",
+          latitude: delivery.trackingLatitude,
+          longitude: delivery.trackingLongitude,
+        }
+      : null;
 
-  if (delivery.trackingUrl) {
-    return (
-      <div className="overflow-hidden rounded-lg border border-border bg-surface/60">
-        <iframe
-          title="Live delivery tracking"
-          src={delivery.trackingUrl}
-          className="h-[min(55vh,480px)] w-full border-0 sm:h-[360px] md:h-[420px] lg:h-[480px]"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      </div>
-    );
-  }
-
-  return <DeliveryRouteMap pickupAddress={pickup} dropAddress={drop} />;
+  return (
+    <DeliveryMapView
+      title="Live delivery map"
+      pickup={{
+        address: formatFullLocation(delivery.pickup),
+        latitude: delivery.pickup.latitude,
+        longitude: delivery.pickup.longitude,
+      }}
+      drop={{
+        address: formatFullLocation(delivery.dropoff),
+        latitude: delivery.dropoff.latitude,
+        longitude: delivery.dropoff.longitude,
+      }}
+      driver={driver}
+    />
+  );
 }

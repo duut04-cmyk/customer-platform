@@ -55,7 +55,7 @@ export default function BookingDelivery({
   const [activeIndex, setActiveIndex] = useState(2);
   const [phaseLabel, setPhaseLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const autoStartRef = useRef(false);
+  const confirmInFlightRef = useRef<Promise<void> | null>(null);
 
   const handlePhase = useCallback((phase: BookingPaymentPhase) => {
     setActiveIndex(phaseToStepperIndex(phase));
@@ -78,25 +78,46 @@ export default function BookingDelivery({
   }, []);
 
   const runConfirm = useCallback(async () => {
-    try {
-      setError(null);
-      await onConfirm(handlePhase);
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
+    if (confirmInFlightRef.current) {
+      await confirmInFlightRef.current;
+      return;
+    }
+
+    const task = (async () => {
+      try {
+        setError(null);
+        const result = await onConfirm(handlePhase);
+        if (result === null) {
+          setError(
+            "Could not start booking. Missing delivery details — go back and try again.",
+          );
+          setActiveIndex(2);
+          setPhaseLabel(null);
+        }
+      } catch (err) {
+        setError(
+          err instanceof ApiError
             ? err.message
-            : "Booking failed. Please try again.",
-      );
-      setActiveIndex(2);
-      setPhaseLabel(null);
+            : err instanceof Error
+              ? err.message
+              : "Booking failed. Please try again.",
+        );
+        setActiveIndex(2);
+        setPhaseLabel(null);
+      }
+    })();
+
+    confirmInFlightRef.current = task;
+    try {
+      await task;
+    } finally {
+      if (confirmInFlightRef.current === task) {
+        confirmInFlightRef.current = null;
+      }
     }
   }, [handlePhase, onConfirm]);
 
   useEffect(() => {
-    if (autoStartRef.current) return;
-    autoStartRef.current = true;
     const timer = window.setTimeout(() => {
       void runConfirm();
     }, 600);

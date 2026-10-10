@@ -34,11 +34,28 @@ export const MAX_PACKAGE_DESCRIPTION_LENGTH = 200;
 export const MIN_PACKAGE_PHOTOS = 3;
 export const MAX_PACKAGE_PHOTOS = 5;
 
+export type PackagePhotoUpload = {
+  id: string;
+  mimeType: "image/jpeg" | "image/png" | "image/webp";
+  fileSizeBytes: number;
+  /** Local preview (blob URL) — not sent to the API */
+  previewUrl: string;
+  /** Set after deferred upload at create time (or legacy immediate upload). */
+  objectKey?: string;
+  storageProvider?: string;
+  /** Local file held until review → create; not persisted in drafts. */
+  pendingFile?: File;
+};
+
 export type Timing = "asap" | "scheduled" | "";
 
 export type DeliveryFormData = {
   pickupAddress: string;
+  pickupLatitude: number | null;
+  pickupLongitude: number | null;
   dropAddress: string;
+  dropLatitude: number | null;
+  dropLongitude: number | null;
   pickupContactName: string;
   pickupContactPhone: string;
   dropContactName: string;
@@ -46,6 +63,10 @@ export type DeliveryFormData = {
   packageType: PackageType;
   packageSizeTier: PackageSizeTier;
   packageDescription: string;
+  /** UUID folder batch for R2 staging keys (server-side presign). */
+  photoUploadBatchId: string;
+  packagePhotos: PackagePhotoUpload[];
+  /** @deprecated Use packagePhotos[].previewUrl — kept for draft migration */
   packagePhotoUrls: string[];
   length: string;
   width: string;
@@ -85,7 +106,11 @@ export type BookingResult = {
 
 export const initialDeliveryFormData: DeliveryFormData = {
   pickupAddress: "",
+  pickupLatitude: null,
+  pickupLongitude: null,
   dropAddress: "",
+  dropLatitude: null,
+  dropLongitude: null,
   pickupContactName: "",
   pickupContactPhone: "",
   dropContactName: "",
@@ -93,6 +118,8 @@ export const initialDeliveryFormData: DeliveryFormData = {
   packageType: "",
   packageSizeTier: "",
   packageDescription: "",
+  photoUploadBatchId: "",
+  packagePhotos: [],
   packagePhotoUrls: [],
   length: "",
   width: "",
@@ -268,9 +295,14 @@ export function validatePackageFields(
   const errors: Partial<Record<keyof DeliveryFormData, string>> = {};
 
   if (!data.packageType) errors.packageType = "Select an item category.";
-  // Photo upload API not wired yet — backend accepts empty photos array.
-  if (data.packagePhotoUrls.length > MAX_PACKAGE_PHOTOS) {
-    errors.packagePhotoUrls = `You can upload up to ${MAX_PACKAGE_PHOTOS} package photos.`;
+  if (data.packagePhotos.length < MIN_PACKAGE_PHOTOS) {
+    errors.packagePhotos = `Add at least ${MIN_PACKAGE_PHOTOS} package photos.`;
+  } else if (data.packagePhotos.length > MAX_PACKAGE_PHOTOS) {
+    errors.packagePhotos = `You can upload up to ${MAX_PACKAGE_PHOTOS} package photos.`;
+  } else if (
+    data.packagePhotos.some((photo) => !photo.objectKey || photo.pendingFile)
+  ) {
+    errors.packagePhotos = "Wait for photos to finish uploading.";
   }
   if (!data.packageSizeTier) {
     errors.packageSizeTier = "Select a package size.";

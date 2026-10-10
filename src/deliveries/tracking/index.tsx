@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
-import BackButton from "@/dashboard/components/BackButton";
 import { useDeliveryHistory } from "../hooks/useDeliveryHistory";
+import LiveTrackingSkeleton from "./components/LiveTrackingSkeleton";
 import TrackingPage from "./TrackingPage";
 
 type DeliveryTrackingProps = {
@@ -18,7 +18,7 @@ export default function DeliveryTracking({ deliveryId }: DeliveryTrackingProps) 
   if (loading) {
     return (
       <main className={`${DASHBOARD_MAIN} bg-white`}>
-        <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
+        <LiveTrackingSkeleton />
       </main>
     );
   }
@@ -26,10 +26,7 @@ export default function DeliveryTracking({ deliveryId }: DeliveryTrackingProps) 
   if (error || !delivery) {
     return (
       <main className={`${DASHBOARD_MAIN} text-center`}>
-        <BackButton href="/deliveries" label="Back to deliveries" />
-        <h1 className="mt-6 text-heading font-bold text-foreground">
-          Delivery not found
-        </h1>
+        <h1 className="text-heading font-bold text-foreground">Delivery not found</h1>
         <Link
           href="/deliveries"
           className="mt-6 inline-block text-body font-semibold text-accent"

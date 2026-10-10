@@ -12,6 +12,7 @@ import DeliveryTimeline from "./components/DeliveryTimeline";
 import DetailDriverCard from "./components/DetailDriverCard";
 import DetailNeedHelpCard from "./components/DetailNeedHelpCard";
 import DetailSafeCompliantCard from "./components/DetailSafeCompliantCard";
+import DeliveryDetailSkeleton from "./components/DeliveryDetailSkeleton";
 import DetailServiceInfoCard from "./components/DetailServiceInfoCard";
 
 type DeliveryDetailProps = {
@@ -26,7 +27,7 @@ export default function DeliveryDetail({ deliveryId }: DeliveryDetailProps) {
   if (loading) {
     return (
       <main className={`${DASHBOARD_MAIN} bg-white`}>
-        <div className="h-64 animate-pulse rounded-xl border border-border bg-background" />
+        <DeliveryDetailSkeleton />
       </main>
     );
   }

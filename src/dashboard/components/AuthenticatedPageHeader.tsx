@@ -8,7 +8,7 @@ import UserMenu from "./UserMenu";
 /** Desktop notification + user menu cluster for authenticated pages */
 export function AuthenticatedDesktopActions() {
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className="relative z-40 flex shrink-0 items-center gap-2 overflow-visible">
       <NotificationBell />
       <UserMenu />
     </div>

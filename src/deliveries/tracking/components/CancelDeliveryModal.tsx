@@ -53,26 +53,39 @@ export default function CancelDeliveryModal({
 
         <fieldset className="mt-5 space-y-2">
           <legend className="sr-only">Cancellation reason</legend>
-          {CANCEL_DELIVERY_REASONS.map((reason) => (
-            <label
-              key={reason}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
-                selectedReason === reason
-                  ? "border-accent bg-accent/5"
-                  : "border-border hover:bg-surface/50"
-              }`}
-            >
-              <input
-                type="radio"
-                name="cancel-reason"
-                value={reason}
-                checked={selectedReason === reason}
-                onChange={() => setSelectedReason(reason)}
-                className="accent-accent"
-              />
-              <span className="text-small text-foreground">{reason}</span>
-            </label>
-          ))}
+          {CANCEL_DELIVERY_REASONS.map((reason) => {
+            const selected = selectedReason === reason;
+            return (
+              <label
+                key={reason}
+                className={`flex cursor-pointer items-center gap-3 rounded-[4px] border px-3 py-2.5 transition-colors ${
+                  selected
+                    ? "border-accent bg-accent/5"
+                    : "border-border hover:bg-surface/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="cancel-reason"
+                  value={reason}
+                  checked={selected}
+                  onChange={() => setSelectedReason(reason)}
+                  className="sr-only"
+                />
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                    selected ? "border-accent" : "border-muted-foreground/40"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {selected ? (
+                    <span className="h-2 w-2 rounded-full bg-accent" />
+                  ) : null}
+                </span>
+                <span className="text-small text-foreground">{reason}</span>
+              </label>
+            );
+          })}
         </fieldset>
 
         {selectedReason === "Other" && (

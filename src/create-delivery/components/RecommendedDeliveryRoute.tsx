@@ -1,5 +1,3 @@
-import DeliveryRouteMap from "@/common/components/DeliveryRouteMap";
-
 type RecommendedDeliveryRouteProps = {
   pickupAddress: string;
   dropAddress: string;
@@ -24,14 +22,6 @@ export default function RecommendedDeliveryRoute({
       >
         Delivery route
       </h3>
-
-      <div className="mt-4 -mx-4 sm:mx-0">
-        <DeliveryRouteMap
-          pickupAddress={pickupAddress}
-          dropAddress={dropAddress}
-          className="rounded-none border-x-0 sm:rounded-lg sm:border-x"
-        />
-      </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="min-w-0">

@@ -62,14 +62,6 @@ export default function PhoneCountrySelect({
     [options],
   );
 
-  const selectedOption = useMemo(
-    () =>
-      selectableOptions.find((option) =>
-        value ? option.value === value : !option.value,
-      ) ?? selectableOptions[0],
-    [selectableOptions, value],
-  );
-
   const filteredOptions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return selectableOptions;
@@ -139,9 +131,9 @@ export default function PhoneCountrySelect({
         aria-expanded={open}
         disabled={isDisabled}
         onClick={handleToggle}
-        className="flex h-10 min-w-[3.75rem] cursor-pointer items-center gap-1.5 rounded-[4px] border border-border bg-background px-2 transition-colors hover:border-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-60 md:h-11"
+        className="PhoneInputCountrySelectButton flex h-full min-w-[4.5rem] cursor-pointer items-center gap-1 border-0 bg-transparent px-2.5 text-small font-medium text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 md:px-3"
       >
-        <Icon country={value} aria-hidden label={selectedOption?.label} />
+        <span className="tabular-nums">{getCallingCode(value) || "+91"}</span>
         <IconChevronDown
           className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
         />

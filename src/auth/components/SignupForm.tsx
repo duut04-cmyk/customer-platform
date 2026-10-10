@@ -5,7 +5,7 @@ import { useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { login, resendEmailOtp, signup, verifyEmailOtp } from "@/api/auth";
 import { getAuthErrorMessage } from "@/auth/auth-errors";
-import { establishSession } from "@/auth/establishSession";
+import { establishCustomerSession } from "@/auth/establishSession";
 import { mapE164ToSplitPhoneFields } from "@/auth/phone-mapper";
 import { validatePassword } from "@/auth/passwordPolicy";
 import Button from "@/common/components/Button";
@@ -107,7 +107,7 @@ export default function SignupForm({
               email: signupEmail,
               password: signupPassword,
             });
-            establishSession(response.data, response.data.user);
+            establishCustomerSession(response.data, response.data.user);
             setSignupPassword("");
             onAuthSuccess?.();
             router.replace(redirectTo);

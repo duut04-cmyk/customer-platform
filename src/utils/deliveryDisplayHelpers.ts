@@ -35,20 +35,45 @@ export function getStatusIcon(status: DeliveryStatus) {
   return IconClock;
 }
 
-export function getStatusSubtext(delivery: Delivery): string {
-  const eta = delivery.estimatedArrival;
+export function getStatusSubtext(delivery: Delivery): string | null {
+  if (delivery.status === "failed" || delivery.status === "cancelled") {
+    return null;
+  }
+
+  const eta = delivery.estimatedArrival?.trim() ?? "";
+  if (!eta || eta === "—" || eta === "Pending update") {
+    return null;
+  }
+
   if (delivery.status === "in_transit" || delivery.status === "picked_up") {
     if (eta.startsWith("Estimated ")) return `ETA ${eta.replace("Estimated ", "")}`;
-    if (eta && eta !== "—" && eta !== "Pending update") return `ETA ${eta}`;
-    return "ETA —";
+    return `ETA ${eta}`;
   }
   if (delivery.status === "delivered") {
     return eta.startsWith("Delivered ") ? eta : `Delivered ${eta}`;
   }
-  if (delivery.status === "failed" || delivery.status === "cancelled") {
-    return "—";
-  }
   return eta;
+}
+
+/** Short route label for list rows when city is missing or looks like a postcode. */
+export function getListRouteLabel(delivery: Delivery): string {
+  const pickup =
+    delivery.pickup.city?.trim() ||
+    delivery.pickup.address?.trim().split(",")[0]?.trim() ||
+    "Pickup";
+  const drop =
+    delivery.dropoff.city?.trim() ||
+    delivery.dropoff.address?.trim().split(",")[0]?.trim() ||
+    "Drop-off";
+  return `${pickup} → ${drop}`;
+}
+
+export function getListServiceLabel(delivery: Delivery): string {
+  return (
+    delivery.selectedService?.trim() ||
+    delivery.serviceType?.trim() ||
+    "Standard delivery"
+  );
 }
 
 export function getListDateTime(delivery: Delivery): string {

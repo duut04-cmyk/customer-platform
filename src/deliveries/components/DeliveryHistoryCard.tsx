@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Delivery } from "../types";
 import { getStatusPillClasses } from "@/utils/deliveryDisplayHelpers";
 import { formatInr } from "../pricing";
+import { getDeliveryDisplayReference } from "../delivery-display-reference";
 import { deliveryRoutePath } from "../paths";
 
 type DeliveryHistoryCardProps = {
@@ -19,7 +20,7 @@ export default function DeliveryHistoryCard({ delivery }: DeliveryHistoryCardPro
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-            {delivery.id}
+            {getDeliveryDisplayReference(delivery)}
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-2 text-body font-semibold text-foreground">
             <span>{delivery.pickup.city}</span>

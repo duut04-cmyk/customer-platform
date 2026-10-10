@@ -2,6 +2,7 @@ import { confirmDelivery } from "@/api/deliveries";
 import { createPaymentForDelivery } from "@/api/payments";
 import { ApiError } from "@/api/errors";
 import { isCashfreeCheckoutEnabled } from "@/config/payment-env";
+import { rememberCheckoutDeliveryId } from "./checkout-delivery-id";
 import { openCashfreeCheckout } from "./open-cashfree-checkout";
 import { requiresCashfreeCheckout } from "./payment-checkout";
 import { waitForPaymentPaid } from "./wait-for-paid";
@@ -23,6 +24,7 @@ export async function completeBookingWithPayment(input: {
   const payment = paymentResponse.data.payment;
 
   if (requiresCashfreeCheckout(payment)) {
+    rememberCheckoutDeliveryId(input.deliveryId);
     input.onPhase?.("opening_checkout");
     await openCashfreeCheckout(payment.paymentSessionId!);
     input.onPhase?.("awaiting_payment");

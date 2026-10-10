@@ -1,16 +1,14 @@
 "use client";
 
+import type { Delivery } from "@/deliveries/types";
 import { useDeliveriesList } from "@/deliveries/hooks/useDeliveriesList";
-import { getDashboardCounts } from "@/utils/dashboardStats";
+import { getDashboardCounts, type DashboardCounts } from "@/utils/dashboardStats";
+import DashboardStatsSkeleton from "./DashboardStatsSkeleton";
 import { IconAlert, IconCheck, IconClock, IconTruck } from "./icons";
 
 type StatCardKey = "total" | "completed" | "inTransit" | "failedCancelled";
 
 type StatsVariant = "dashboard" | "deliveries";
-
-type DashboardStatsProps = {
-  variant?: StatsVariant;
-};
 
 const statCardsByVariant: Record<
   StatsVariant,
@@ -44,7 +42,7 @@ const statCardsByVariant: Record<
     {
       key: "failedCancelled",
       label: "Failed / Cancelled",
-      compactLabel: "Failed",
+      compactLabel: "Failed / Cancelled",
       icon: IconAlert,
       iconBg: "bg-red-50 text-red-600",
     },
@@ -71,17 +69,27 @@ const statCardsByVariant: Record<
     {
       key: "failedCancelled",
       label: "Failed / Cancelled",
-      compactLabel: "Failed",
+      compactLabel: "Failed / Cancelled",
       icon: IconAlert,
       iconBg: "bg-red-50 text-red-600",
     },
   ],
 };
 
-export default function DashboardStats({ variant = "dashboard" }: DashboardStatsProps) {
-  const { deliveries } = useDeliveriesList(100);
-  const counts = getDashboardCounts(deliveries);
+function DashboardStatsGrid({
+  variant,
+  counts,
+  loading,
+}: {
+  variant: StatsVariant;
+  counts: DashboardCounts;
+  loading?: boolean;
+}) {
   const statCards = statCardsByVariant[variant];
+
+  if (loading) {
+    return <DashboardStatsSkeleton />;
+  }
 
   return (
     <div className="grid grid-cols-2 gap-2.5 md:portrait:grid-cols-4 md:portrait:gap-2 lg:landscape:grid-cols-4 lg:landscape:gap-2 xl:grid-cols-4 xl:gap-4">
@@ -120,4 +128,34 @@ export default function DashboardStats({ variant = "dashboard" }: DashboardStats
       })}
     </div>
   );
+}
+
+/** Stats for a pre-filtered delivery list (e.g. deliveries history date range). */
+export function DashboardStatsForDeliveries({
+  deliveries,
+  loading = false,
+}: {
+  deliveries: Delivery[];
+  loading?: boolean;
+}) {
+  const counts = getDashboardCounts(deliveries);
+  return <DashboardStatsGrid variant="deliveries" counts={counts} loading={loading} />;
+}
+
+/** Dashboard home stats for a shared date-filtered list. */
+export function DashboardStatsForPeriod({
+  deliveries,
+  loading = false,
+}: {
+  deliveries: Delivery[];
+  loading?: boolean;
+}) {
+  const counts = getDashboardCounts(deliveries);
+  return <DashboardStatsGrid variant="dashboard" counts={counts} loading={loading} />;
+}
+
+export default function DashboardStats() {
+  const { deliveries, loading } = useDeliveriesList(100);
+  const counts = getDashboardCounts(deliveries);
+  return <DashboardStatsGrid variant="dashboard" counts={counts} loading={loading} />;
 }

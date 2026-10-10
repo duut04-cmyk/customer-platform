@@ -1,25 +1,42 @@
 "use client";
 
-import { forwardRef, type InputHTMLAttributes } from "react";
-import PhoneInputLib from "react-phone-number-input";
+import { forwardRef, useMemo, type InputHTMLAttributes } from "react";
+import PhoneInputLib, { parsePhoneNumber } from "react-phone-number-input";
 import PhoneCountrySelect from "./PhoneCountrySelect";
 
 const phoneInputClasses =
-  "w-full h-10 min-w-0 flex-1 px-3.5 text-small bg-background text-foreground border border-border rounded-[4px] placeholder:text-muted-foreground transition-colors duration-150 hover:border-foreground/25 focus:border-foreground focus:ring-1 focus:ring-foreground/10 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-60 md:h-11 md:px-4 md:text-body";
+  "PhoneInputInput w-full min-w-0 flex-1 border-0 bg-transparent px-3 text-small text-foreground placeholder:text-muted-foreground/55 outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60 md:px-3.5";
 
 const PhoneTextInput = forwardRef<
   HTMLInputElement,
   InputHTMLAttributes<HTMLInputElement> & { error?: boolean }
->(function PhoneTextInput({ className = "", error = false, ...props }, ref) {
-  return (
-    <input
-      ref={ref}
-      className={`${phoneInputClasses} ${error ? "border-foreground ring-1 ring-foreground/20" : ""} ${className}`}
-      aria-invalid={error || undefined}
-      {...props}
-    />
-  );
+>(function PhoneTextInput({ className = "", ...props }, ref) {
+  return <input ref={ref} className={`${phoneInputClasses} ${className}`} {...props} />;
 });
+
+function isCountryCodeOnly(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (/^\+\d{1,4}$/.test(trimmed)) {
+    return true;
+  }
+  try {
+    const parsed = parsePhoneNumber(trimmed);
+    return Boolean(parsed && !parsed.nationalNumber);
+  } catch {
+    return false;
+  }
+}
+
+function valueForPhoneControl(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed || isCountryCodeOnly(trimmed)) {
+    return undefined;
+  }
+  return trimmed;
+}
 
 type PhoneInputProps = {
   id?: string;
@@ -40,22 +57,34 @@ export default function PhoneInput({
   placeholder = "Enter phone number",
   disabled = false,
 }: PhoneInputProps) {
+  const controlValue = useMemo(() => valueForPhoneControl(value), [value]);
+
   return (
     <PhoneInputLib
       id={id}
       name={name}
-      international
-      withCountryCallingCode
+      international={false}
+      withCountryCallingCode={false}
       defaultCountry="IN"
       addInternationalOption={false}
       countryCallingCodeEditable={false}
       countrySelectComponent={PhoneCountrySelect}
-      value={value || undefined}
-      onChange={(nextValue) => onChange(nextValue ?? "")}
+      value={controlValue}
+      onChange={(nextValue) => {
+        if (!nextValue) {
+          onChange("");
+          return;
+        }
+        if (isCountryCodeOnly(nextValue)) {
+          onChange("");
+          return;
+        }
+        onChange(nextValue);
+      }}
       inputComponent={PhoneTextInput}
       numberInputProps={{
         placeholder,
-        error,
+        "aria-invalid": error || undefined,
         autoComplete: "tel",
         type: "tel",
       }}

@@ -6,6 +6,7 @@ import { useState } from "react";
 import Button from "@/common/components/Button";
 import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
 import { IconCheck, IconChevronDown, IconTruck } from "@/dashboard/components/icons";
+import { getDeliveryDisplayReference } from "@/deliveries/delivery-display-reference";
 import { deliveryRoutePath } from "@/deliveries/paths";
 import type { Delivery } from "../../types";
 
@@ -54,7 +55,7 @@ export default function CompletedDeliveryOverviewCard({
               Delivery ID
             </p>
             <h2 className="mt-0.5 text-body-lg font-bold text-foreground md:text-subheading">
-              {delivery.id}
+              {getDeliveryDisplayReference(delivery)}
             </h2>
           </div>
           <span className="inline-flex items-center gap-1 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">

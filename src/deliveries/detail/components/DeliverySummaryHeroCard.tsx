@@ -10,6 +10,7 @@ import {
   IconMapPinFilled,
 } from "@/dashboard/components/icons";
 import PricingBreakdown from "@/create-delivery/components/PricingBreakdown";
+import { getDeliveryDisplayReference } from "@/deliveries/delivery-display-reference";
 import { deliveryTrackingPath } from "@/deliveries/paths";
 import { formatInr } from "@/deliveries/pricing";
 import { getPartnerMark } from "@/utils/deliveryDisplayHelpers";
@@ -76,6 +77,47 @@ function IconReceipt({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+function StatusBadge({ delivery }: { delivery: Delivery }) {
+  if (delivery.status === "cancelled") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-pill border border-red-200 bg-red-50 px-2.5 py-1 text-caption font-semibold text-red-700">
+        <IconClose className="h-3.5 w-3.5" />
+        Cancelled
+      </span>
+    );
+  }
+  if (delivery.status === "failed") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-pill border border-red-200 bg-red-50 px-2.5 py-1 text-caption font-semibold text-red-700">
+        <IconClose className="h-3.5 w-3.5" />
+        Failed
+      </span>
+    );
+  }
+  if (delivery.status === "delivered") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">
+        <IconCheck className="h-3.5 w-3.5" />
+        Delivered
+      </span>
+    );
+  }
+  if (isActiveDeliveryDetailStatus(delivery.status)) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+        In progress
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">
+      <IconCheck className="h-3.5 w-3.5" />
+      Confirmed
+    </span>
+  );
+}
+
 export default function DeliverySummaryHeroCard({
   delivery,
 }: DeliverySummaryHeroCardProps) {
@@ -84,6 +126,10 @@ export default function DeliverySummaryHeroCard({
   const partner = getPartnerMark(delivery.selectedService);
   const serviceType = delivery.serviceType ?? "Standard delivery";
   const serviceTagline = delivery.serviceTagline ?? "Fast & reliable delivery";
+  const bookedLine =
+    delivery.status === "cancelled" && delivery.cancelledAtLabel
+      ? `Cancelled ${delivery.cancelledAtLabel}`
+      : (delivery.bookedAtLabel ?? `Booked ${delivery.dateLabel}`);
 
   return (
     <>
@@ -91,27 +137,12 @@ export default function DeliverySummaryHeroCard({
         <div className="space-y-5 p-5 md:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1 space-y-3">
-              {isActive ? (
-                <span className="inline-flex items-center gap-1.5 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full bg-emerald-500"
-                    aria-hidden="true"
-                  />
-                  In progress
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-caption font-semibold text-emerald-700">
-                  <IconCheck className="h-3.5 w-3.5" />
-                  Confirmed
-                </span>
-              )}
+              <StatusBadge delivery={delivery} />
               <div>
                 <h2 className="text-heading font-bold tracking-tight text-foreground md:text-heading-md">
-                  {delivery.id}
+                  {getDeliveryDisplayReference(delivery)}
                 </h2>
-                <p className="mt-1 text-small text-muted-foreground">
-                  {delivery.bookedAtLabel ?? `Booked ${delivery.dateLabel}`}
-                </p>
+                <p className="mt-1 text-small text-muted-foreground">{bookedLine}</p>
               </div>
             </div>
 
