@@ -159,21 +159,44 @@ h3 {
 
 .phone-input-field {
   display: flex;
-  gap: 0.5rem;
   align-items: stretch;
+  height: 2.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.phone-input-field:hover {
+  border-color: color-mix(in srgb, var(--foreground) 25%, var(--border));
+}
+
+.phone-input-field:focus-within {
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.phone-input-field--error {
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 20%, transparent);
 }
 
 .phone-input-field .PhoneInputCountry {
   margin-right: 0;
+  display: flex;
+  align-self: stretch;
+  border-right: 1px solid var(--border);
+}
+
+.phone-input-field .PhoneInputCountrySelectButton {
+  height: 100%;
 }
 
 .phone-input-field .PhoneInputCountryIcon {
-  --PhoneInputCountryFlag-height: 1rem;
-  flex-shrink: 0;
-}
-
-.phone-input-field--error .PhoneInputCountry button {
-  border-color: var(--foreground);
+  display: none;
 }
 
 .auth-checkbox {
@@ -200,4 +223,72 @@ h3 {
 .auth-checkbox:focus-visible {
   outline: 2px solid rgba(249, 115, 22, 0.3);
   outline-offset: 2px;
+}
+
+/* Google Places Autocomplete dropdown (legacy pac-container + new widget) */
+.pac-container {
+  z-index: 10000;
+}
+
+.doot-place-autocomplete-host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+gmp-place-autocomplete.doot-place-autocomplete {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color-scheme: light;
+}
+
+gmp-place-autocomplete.doot-place-autocomplete::part(focus-ring) {
+  display: none;
+}
+
+gmp-place-autocomplete.doot-place-autocomplete::part(input) {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0 0.875rem 0 2.5rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+gmp-place-autocomplete.doot-place-autocomplete::part(input)::placeholder {
+  color: rgba(10, 10, 10, 0.42);
+}
+
+gmp-place-autocomplete.doot-place-autocomplete::part(input):hover {
+  border-color: color-mix(in srgb, var(--foreground) 25%, var(--border));
+}
+
+gmp-place-autocomplete.doot-place-autocomplete::part(input):focus {
+  outline: none;
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+gmp-place-autocomplete.doot-place-autocomplete[aria-invalid="true"]::part(input) {
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 20%, transparent);
+}
+
+@media (min-width: 768px) {
+  gmp-place-autocomplete.doot-place-autocomplete::part(input) {
+    padding: 0 0.875rem 0 2.5rem;
+  }
 }

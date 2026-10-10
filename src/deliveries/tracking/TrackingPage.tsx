@@ -1,17 +1,24 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
+  advanceDevDeliveryStep,
   cancelDelivery,
-  submitFeedback,
-  submitRating,
+  submitDeliveryExperience,
 } from "@/api/deliveries/delivery.api";
+import {
+  canSimulateDeliveryProvider,
+  devSimulateStepLabel,
+  isDevDeliverySimulateEnabled,
+} from "@/config/dev-delivery-simulate";
 import { mapCancelReasonToBackend } from "@/api/deliveries/cancel-reasons";
 import { ApiError } from "@/api/errors";
 import type { CancelDeliveryReason } from "@/deliveries/customerCopy";
 import { DASHBOARD_MAIN } from "@/dashboard/components/layout";
 import type { Delivery } from "../types";
 import TrackingCancelledView from "./components/TrackingCancelledView";
+import type { DeliveryExperienceSubmitPayload } from "./components/DeliveryExperienceSurveyCard";
 import TrackingCompletedView from "./components/TrackingCompletedView";
 import TrackingFailedView from "./components/TrackingFailedView";
 import TrackingInProgressView from "./components/TrackingInProgressView";
@@ -22,8 +29,15 @@ type TrackingPageProps = {
 };
 
 export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps) {
+  const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [simulating, setSimulating] = useState(false);
+  const [simulateError, setSimulateError] = useState<string | null>(null);
+  const [simulateHint, setSimulateHint] = useState<string | null>(null);
+  const showDevSimulate =
+    isDevDeliverySimulateEnabled() &&
+    canSimulateDeliveryProvider(delivery.providerCode);
 
   const handleCancel = useCallback(
     async (reason: CancelDeliveryReason, otherText?: string) => {
@@ -56,15 +70,39 @@ export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps)
     [delivery.id, onRefresh],
   );
 
-  const handleRate = async (rating: number, comment: string) => {
-    await submitRating(delivery.id, {
-      driverRating: rating,
-      deliveryRating: rating,
-    });
-    if (comment.trim()) {
-      await submitFeedback(delivery.id, { comment: comment.trim() });
+  const handleSimulateStep = useCallback(async () => {
+    setSimulating(true);
+    setSimulateError(null);
+    setSimulateHint(null);
+    try {
+      const result = await advanceDevDeliveryStep(delivery.id);
+      const { devOtp, nextStep } = result.data;
+      if (devOtp) {
+        setSimulateHint(`Dev OTP: ${devOtp} (also sent flow skipped in simulation)`);
+      } else if (nextStep) {
+        setSimulateHint(`Next: ${devSimulateStepLabel(nextStep)}`);
+      }
+      await onRefresh();
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Could not advance delivery simulation.";
+      setSimulateError(message);
+    } finally {
+      setSimulating(false);
     }
-    await onRefresh();
+  }, [delivery.id, onRefresh]);
+
+  const handleSubmitExperience = async (payload: DeliveryExperienceSubmitPayload) => {
+    const { comment, ...ratings } = payload;
+    await submitDeliveryExperience(delivery.id, {
+      ...ratings,
+      comment: comment.trim() ? comment.trim() : null,
+    });
+    router.push("/dashboard");
   };
 
   const isCompleted = delivery.status === "delivered";
@@ -74,13 +112,21 @@ export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps)
   return (
     <main className={`${DASHBOARD_MAIN} bg-white`}>
       <div className="space-y-4 lg:space-y-5">
-        {cancelError && (
+        {(cancelError || simulateError) && (
           <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-small text-red-700">
-            {cancelError}
+            {cancelError ?? simulateError}
+          </p>
+        )}
+        {simulateHint && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-small text-amber-900">
+            {simulateHint}
           </p>
         )}
         {isCompleted && (
-          <TrackingCompletedView delivery={delivery} onRate={handleRate} />
+          <TrackingCompletedView
+            delivery={delivery}
+            onSubmitExperience={handleSubmitExperience}
+          />
         )}
         {isCancelled && <TrackingCancelledView delivery={delivery} />}
         {isFailed && <TrackingFailedView delivery={delivery} />}
@@ -89,7 +135,9 @@ export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps)
             delivery={delivery}
             onCancel={handleCancel}
             cancelling={cancelling}
-            onOtpVerified={onRefresh}
+            showDevSimulate={showDevSimulate}
+            onDevSimulate={handleSimulateStep}
+            simulating={simulating}
           />
         )}
       </div>

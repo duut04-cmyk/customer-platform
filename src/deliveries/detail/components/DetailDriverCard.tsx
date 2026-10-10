@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { IconTruck } from "@/dashboard/components/icons";
-import type { Delivery } from "../../types";
+import { resolveDevPreviewDriver } from "@/config/dev-delivery-simulate";
+import type { Delivery, DeliveryDriver } from "../../types";
 
 type DetailDriverCardProps = {
   delivery: Delivery;
@@ -44,39 +45,28 @@ function IconIdCard({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
-export default function DetailDriverCard({ delivery }: DetailDriverCardProps) {
-  if (delivery.status === "cancelled" || delivery.status === "failed") {
-    return null;
-  }
-
-  if (!delivery.driver) {
-    return (
-      <section className="rounded-xl border border-border bg-background p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-50 text-violet-600">
-            <IconIdCard />
-          </span>
-          <div>
-            <h3 className="text-body font-bold text-foreground">Driver details</h3>
-            <p className="mt-2 text-small text-muted-foreground">
-              Finding your delivery partner…
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const { driver } = delivery;
-
+function DriverDetailsBody({
+  driver,
+  isDevPreview,
+}: {
+  driver: DeliveryDriver;
+  isDevPreview: boolean;
+}) {
   return (
-    <section className="rounded-xl border border-border bg-background p-5 shadow-sm">
+    <>
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-50 text-violet-600">
           <IconIdCard />
         </span>
         <h3 className="text-body font-bold text-foreground">Driver details</h3>
       </div>
+
+      {isDevPreview ? (
+        <p className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-caption text-amber-900">
+          Dev preview — use &quot;Simulate next step&quot; to assign a real driver from
+          the API.
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-col gap-4">
         <div className="flex items-start gap-3">
@@ -106,7 +96,7 @@ export default function DetailDriverCard({ delivery }: DetailDriverCardProps) {
                 )}
               </p>
             )}
-            {driver.phone && (
+            {driver.phone && !isDevPreview && (
               <button
                 type="button"
                 onClick={() => {
@@ -129,6 +119,39 @@ export default function DetailDriverCard({ delivery }: DetailDriverCardProps) {
           <span className="font-medium text-foreground">{driver.vehicleNumber}</span>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function DetailDriverCard({ delivery }: DetailDriverCardProps) {
+  if (delivery.status === "cancelled" || delivery.status === "failed") {
+    return null;
+  }
+
+  const devPreview = delivery.driver ? null : resolveDevPreviewDriver(delivery.status);
+  const driver = delivery.driver ?? devPreview;
+
+  if (!driver) {
+    return (
+      <section className="rounded-xl border border-border bg-background p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-50 text-violet-600">
+            <IconIdCard />
+          </span>
+          <div>
+            <h3 className="text-body font-bold text-foreground">Driver details</h3>
+            <p className="mt-2 text-small text-muted-foreground">
+              Finding your delivery partner…
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-xl border border-border bg-background p-5 shadow-sm">
+      <DriverDetailsBody driver={driver} isDevPreview={devPreview != null} />
     </section>
   );
 }

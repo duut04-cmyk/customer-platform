@@ -1,4 +1,12 @@
-import { apiClient } from "@/api/client";
+import { apiClient, type ApiClientRequestOptions } from "@/api/client";
+import { ApiError } from "@/api/errors";
+import {
+  assertBookableOrchestrationResult,
+  isOrchestrationBookable,
+  isOrchestrationInProgress,
+  NO_ELIGIBLE_PROVIDERS_MESSAGE,
+  normalizeOrchestrationResult,
+} from "./orchestration-result";
 import type { BackendCancellationReasonCode } from "./cancel-reasons";
 import { DELIVERY_ENDPOINTS, IDEMPOTENCY_HEADER } from "./delivery.constants";
 import type {
@@ -11,6 +19,7 @@ import type {
   DeliveryHistoryDetail,
   ListDeliveriesQuery,
   PaginatedDeliveriesDto,
+  SubmitDeliveryExperienceBody,
   SubmitFeedbackBody,
   SubmitRatingBody,
   TrackingPointDto,
@@ -54,10 +63,40 @@ export async function getDeliveryHistory(id: string) {
   );
 }
 
-export async function orchestrateDelivery(id: string) {
+const ORCHESTRATE_POST_TIMEOUT_MS = 120_000;
+/** How long to poll GET /orchestration after a lost or in-flight POST. */
+const ORCHESTRATE_POLL_TOTAL_MS = 120_000;
+const ORCHESTRATE_POLL_INTERVAL_MS = 500;
+const ORCHESTRATE_POLL_INTERVAL_MAX_MS = 2_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isOrchestrationTransportError(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    (error.code === "NETWORK_ERROR" ||
+      error.code === "REQUEST_ABORTED" ||
+      error.status === 0)
+  );
+}
+
+function isOrchestrationConflictError(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    (error.status === 409 || error.code === "ORCHESTRATION_IN_PROGRESS")
+  );
+}
+
+export async function orchestrateDelivery(
+  id: string,
+  options?: ApiClientRequestOptions,
+) {
   return apiClient.post<ApiSuccess<CustomerOrchestrationResultDto>>(
     DELIVERY_ENDPOINTS.orchestrate(id),
     {},
+    options,
   );
 }
 
@@ -65,6 +104,129 @@ export async function getOrchestration(id: string) {
   return apiClient.get<ApiSuccess<CustomerOrchestrationResultDto>>(
     DELIVERY_ENDPOINTS.orchestration(id),
   );
+}
+
+/**
+ * One GET attempt. Returns completed OPTION_READY, null if still in progress / not found,
+ * or throws on definitive business failure. Transport errors return null (retry poll).
+ */
+async function readOrchestrationSnapshot(
+  deliveryId: string,
+): Promise<CustomerOrchestrationResultDto | null> {
+  try {
+    const latest = await getOrchestration(deliveryId);
+    const data = normalizeOrchestrationResult(latest.data);
+    if (isOrchestrationBookable(data)) {
+      return data;
+    }
+    if (data.status === "FAILED") {
+      throw new Error(NO_ELIGIBLE_PROVIDERS_MESSAGE);
+    }
+    return null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    if (isOrchestrationTransportError(error)) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/** Poll until orchestration completes or deadline — used when POST response is lost. */
+export async function waitForOrchestrationResult(
+  deliveryId: string,
+  options?: { totalMs?: number; intervalMs?: number },
+): Promise<CustomerOrchestrationResultDto> {
+  const totalMs = options?.totalMs ?? ORCHESTRATE_POLL_TOTAL_MS;
+  const baseIntervalMs = options?.intervalMs ?? ORCHESTRATE_POLL_INTERVAL_MS;
+  const deadline = Date.now() + totalMs;
+  let lastTransportError: ApiError | null = null;
+  let pollAttempt = 0;
+
+  while (Date.now() < deadline) {
+    try {
+      const completed = await readOrchestrationSnapshot(deliveryId);
+      if (completed) {
+        return completed;
+      }
+    } catch (error) {
+      if (error instanceof ApiError && isOrchestrationTransportError(error)) {
+        lastTransportError = error;
+      } else {
+        throw error;
+      }
+    }
+    pollAttempt += 1;
+    const backoffInterval = Math.min(
+      baseIntervalMs * pollAttempt,
+      ORCHESTRATE_POLL_INTERVAL_MAX_MS,
+    );
+    await sleep(backoffInterval);
+  }
+
+  if (lastTransportError) {
+    throw lastTransportError;
+  }
+
+  throw new ApiError({
+    status: 0,
+    message:
+      "We couldn't load delivery options in time. Please try again or go back to review your details.",
+    code: "ORCHESTRATION_POLL_TIMEOUT",
+  });
+}
+
+function finalizeOrchestrationResult(
+  data: CustomerOrchestrationResultDto,
+  deliveryId: string,
+): Promise<CustomerOrchestrationResultDto> {
+  const normalized = normalizeOrchestrationResult(data);
+  if (isOrchestrationBookable(normalized)) {
+    return Promise.resolve(normalized);
+  }
+  if (isOrchestrationInProgress(normalized)) {
+    return waitForOrchestrationResult(deliveryId);
+  }
+  return Promise.resolve(assertBookableOrchestrationResult(normalized));
+}
+
+/** @deprecated Prefer waitForOrchestrationResult — kept for tests/callers. */
+export async function fetchCompletedOrchestration(
+  deliveryId: string,
+): Promise<CustomerOrchestrationResultDto | null> {
+  return readOrchestrationSnapshot(deliveryId);
+}
+
+/**
+ * POST orchestrate once; if the response is lost or orchestration is still running, poll GET
+ * until OPTION_READY (no duplicate POST spam).
+ */
+export async function orchestrateWithRecovery(
+  deliveryId: string,
+  options?: ApiClientRequestOptions,
+): Promise<CustomerOrchestrationResultDto> {
+  try {
+    const response = await orchestrateDelivery(deliveryId, {
+      ...options,
+      timeoutMs: options?.timeoutMs ?? ORCHESTRATE_POST_TIMEOUT_MS,
+    });
+    return finalizeOrchestrationResult(response.data, deliveryId);
+  } catch (error) {
+    if (options?.signal?.aborted) {
+      throw error;
+    }
+
+    const shouldPoll =
+      isOrchestrationTransportError(error) || isOrchestrationConflictError(error);
+
+    if (shouldPoll) {
+      return waitForOrchestrationResult(deliveryId);
+    }
+
+    throw error;
+  }
 }
 
 export async function confirmDelivery(id: string, idempotencyKey?: string) {
@@ -130,6 +292,13 @@ export async function submitRating(id: string, body: SubmitRatingBody) {
   return apiClient.post(DELIVERY_ENDPOINTS.rating(id), body);
 }
 
+export async function submitDeliveryExperience(
+  id: string,
+  body: SubmitDeliveryExperienceBody,
+) {
+  return apiClient.post(DELIVERY_ENDPOINTS.experience(id), body);
+}
+
 export async function getRating(id: string) {
   return apiClient.get<
     ApiSuccess<{
@@ -153,6 +322,19 @@ export async function getFeedback(id: string) {
       submittedAt: string;
     }>
   >(DELIVERY_ENDPOINTS.feedback(id));
+}
+
+export async function advanceDevDeliveryStep(id: string) {
+  return apiClient.post<
+    ApiSuccess<{
+      deliveryId: string;
+      previousStatus: string;
+      status: string;
+      step: string;
+      nextStep: string | null;
+      devOtp?: string;
+    }>
+  >(DELIVERY_ENDPOINTS.devAdvance(id));
 }
 
 export async function cancelDelivery(
@@ -188,21 +370,11 @@ export async function createAndOrchestrate(
 ) {
   const created = await createDelivery(body, createIdempotencyKey);
   const deliveryId = created.data.id;
-  const orchestration = await orchestrateDelivery(deliveryId);
-
-  if (orchestration.data.status === "FAILED") {
-    throw new Error(
-      "No eligible delivery providers were found for this route. Try adjusting your package or timing.",
-    );
-  }
-
-  if (!orchestration.data.orchestration.selectedOption) {
-    throw new Error("Orchestration completed without a selected delivery option.");
-  }
+  const orchestration = await orchestrateWithRecovery(deliveryId);
 
   return {
     deliveryId,
     delivery: created.data,
-    orchestration: orchestration.data,
+    orchestration,
   };
 }

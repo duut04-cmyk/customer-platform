@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { completeGoogleLogin } from "./complete-google-login";
 
-const { googleLoginMock, establishSessionMock } = vi.hoisted(() => ({
+const { googleLoginMock, establishCustomerSessionMock } = vi.hoisted(() => ({
   googleLoginMock: vi.fn(),
-  establishSessionMock: vi.fn(),
+  establishCustomerSessionMock: vi.fn(),
 }));
 
 vi.mock("@/api/auth", () => ({
@@ -11,13 +11,13 @@ vi.mock("@/api/auth", () => ({
 }));
 
 vi.mock("@/auth/establishSession", () => ({
-  establishSession: establishSessionMock,
+  establishCustomerSession: establishCustomerSessionMock,
 }));
 
 describe("completeGoogleLogin", () => {
   beforeEach(() => {
     googleLoginMock.mockReset();
-    establishSessionMock.mockReset();
+    establishCustomerSessionMock.mockReset();
   });
 
   it("exchanges the Google credential for a Dutt session", async () => {
@@ -31,6 +31,7 @@ describe("completeGoogleLogin", () => {
           id: "user-1",
           name: "Jane Doe",
           email: "jane@example.com",
+          role: "CUSTOMER",
         },
       },
     });
@@ -40,7 +41,7 @@ describe("completeGoogleLogin", () => {
     expect(googleLoginMock).toHaveBeenCalledWith({
       credential: "google-id-token",
     });
-    expect(establishSessionMock).toHaveBeenCalledWith(
+    expect(establishCustomerSessionMock).toHaveBeenCalledWith(
       {
         accessToken: "access-token",
         refreshToken: "refresh-token",
@@ -48,12 +49,14 @@ describe("completeGoogleLogin", () => {
           id: "user-1",
           name: "Jane Doe",
           email: "jane@example.com",
+          role: "CUSTOMER",
         },
       },
       {
         id: "user-1",
         name: "Jane Doe",
         email: "jane@example.com",
+        role: "CUSTOMER",
       },
     );
     expect(onAuthSuccess).toHaveBeenCalled();

@@ -221,9 +221,10 @@ export default function PackageStep({ data, errors, onChange }: PackageStepProps
 
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,1fr)] lg:items-stretch">
           <PackagePhotoUpload
-            value={data.packagePhotoUrls}
-            onChange={(urls) => onChange({ packagePhotoUrls: urls })}
-            error={errors.packagePhotoUrls as string | undefined}
+            photos={data.packagePhotos}
+            uploadBatchId={data.photoUploadBatchId}
+            onChange={(packagePhotos) => onChange({ packagePhotos })}
+            error={errors.packagePhotos as string | undefined}
           />
           <WhyWeNeedPhotosPanel />
         </div>

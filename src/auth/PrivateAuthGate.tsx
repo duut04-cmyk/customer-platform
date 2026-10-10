@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import DashboardShell from "@/dashboard/components/DashboardShell";
 import { useAuthStore } from "@/stores/auth.store";
+import PrivateAuthLoadingSkeleton from "./PrivateAuthLoadingSkeleton";
 
 type PrivateAuthGateProps = {
   children: React.ReactNode;
@@ -20,9 +22,9 @@ export default function PrivateAuthGate({ children }: PrivateAuthGateProps) {
 
   if (isInitializing) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-small text-muted-foreground">Loading your account...</p>
-      </div>
+      <DashboardShell>
+        <PrivateAuthLoadingSkeleton />
+      </DashboardShell>
     );
   }
 

@@ -10,7 +10,7 @@ function basePayment(overrides: Partial<CustomerPaymentDto> = {}): CustomerPayme
     currency: "INR",
     status: "PENDING",
     gateway: "CASHFREE",
-    gatewayOrderId: "DOTT-1",
+    gatewayOrderId: "DOOT-1",
     paymentSessionId: "sess-1",
     paidAt: null,
     refundedAmount: 0,

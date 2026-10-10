@@ -1,5 +1,6 @@
 import BackButton from "@/dashboard/components/BackButton";
 import type { Delivery } from "../../types";
+import { getDeliveryDisplayReference } from "../../delivery-display-reference";
 import { deliveryRoutePath } from "../../paths";
 
 type TrackingHeaderProps = {
@@ -15,7 +16,7 @@ export default function TrackingHeader({ delivery }: TrackingHeaderProps) {
           Track your delivery
         </h1>
         <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-          {delivery.id}
+          {getDeliveryDisplayReference(delivery)}
         </p>
       </div>
     </div>

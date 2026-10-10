@@ -77,9 +77,9 @@ function getPackageDetailsSummary(data: DeliveryFormData): string {
     parts.push(data.packageDescription.trim());
   }
 
-  if (data.packagePhotoUrls.length > 0) {
+  if (data.packagePhotos.length > 0) {
     parts.push(
-      `${data.packagePhotoUrls.length} photo${data.packagePhotoUrls.length === 1 ? "" : "s"}`,
+      `${data.packagePhotos.length} photo${data.packagePhotos.length === 1 ? "" : "s"}`,
     );
   }
 

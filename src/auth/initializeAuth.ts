@@ -1,4 +1,5 @@
 import { getCurrentUser, refreshSession } from "@/api/auth";
+import { isCustomerPortalUser } from "@/auth/customer-portal-auth";
 import {
   clearSession,
   getAccessToken,
@@ -12,6 +13,11 @@ let initializePromise: Promise<void> | null = null;
 
 async function loadCurrentUser() {
   const response = await getCurrentUser();
+  if (!isCustomerPortalUser(response.data.user)) {
+    clearSession();
+    useAuthStore.getState().reset();
+    throw new Error("Non-customer session rejected.");
+  }
   useAuthStore.getState().setUser(response.data.user);
 }
 

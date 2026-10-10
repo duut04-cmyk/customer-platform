@@ -1,6 +1,37 @@
+import type { DeliveryMapPoint } from "@/common/components/DeliveryMapView";
 import { getTrackingHeroSubtitle, getTrackingHeroTitle } from "../../customerCopy";
-import type { Delivery } from "../../types";
+import type { Delivery, DeliveryLocation } from "../../types";
 import TrackingMap from "./TrackingMap";
+
+function mapLocationToMapPoint(location: DeliveryLocation): DeliveryMapPoint {
+  return {
+    address: [location.address, location.city].filter(Boolean).join(", "),
+    latitude: location.latitude,
+    longitude: location.longitude,
+  };
+}
+
+function hasCoords(point: DeliveryMapPoint): boolean {
+  return (
+    point.latitude != null &&
+    point.longitude != null &&
+    Number.isFinite(point.latitude) &&
+    Number.isFinite(point.longitude)
+  );
+}
+
+function hasRouteEndpoints(pickup: DeliveryMapPoint, drop: DeliveryMapPoint): boolean {
+  const pickupReady = Boolean(pickup.address.trim()) || hasCoords(pickup);
+  const dropReady = Boolean(drop.address.trim()) || hasCoords(drop);
+  return pickupReady && dropReady;
+}
+
+function deliveryHasRouteMap(delivery: Delivery): boolean {
+  return hasRouteEndpoints(
+    mapLocationToMapPoint(delivery.pickup),
+    mapLocationToMapPoint(delivery.dropoff),
+  );
+}
 
 type LiveTrackingCardProps = {
   delivery: Delivery;
@@ -27,10 +58,7 @@ function PackageIllustration() {
 }
 
 export default function LiveTrackingCard({ delivery }: LiveTrackingCardProps) {
-  const showMap =
-    delivery.status !== "booked" &&
-    (Boolean(delivery.driver) ||
-      (delivery.trackingLatitude != null && delivery.trackingLongitude != null));
+  const showMap = deliveryHasRouteMap(delivery);
 
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
@@ -54,7 +82,8 @@ export default function LiveTrackingCard({ delivery }: LiveTrackingCardProps) {
         ) : (
           <div className="flex h-[280px] items-center justify-center rounded-xl border border-dashed border-border bg-surface/40 sm:h-[360px]">
             <p className="max-w-xs px-4 text-center text-small text-muted-foreground">
-              Live map will appear here once your delivery partner is on the way.
+              Add pickup and drop locations on the map to see your route here. Driver
+              location appears when your partner is assigned and sharing GPS.
             </p>
           </div>
         )}

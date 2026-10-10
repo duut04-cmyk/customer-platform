@@ -15,6 +15,27 @@ function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+export type CustomerQuoteAmounts = {
+  amount: number;
+  customerPayableAmount?: number;
+  platformFeeAmount?: number;
+  gstAmount?: number;
+};
+
+/** Prefer server-provided payable breakdown when present; otherwise compute locally. */
+export function deliveryPricingFromQuote(quote: CustomerQuoteAmounts): DeliveryPricing {
+  const computed = calculateDeliveryPricing(quote.amount);
+  if (quote.customerPayableAmount == null) {
+    return computed;
+  }
+  return {
+    ...computed,
+    platformFeeAmount: quote.platformFeeAmount ?? computed.platformFeeAmount,
+    gstAmount: quote.gstAmount ?? computed.gstAmount,
+    total: quote.customerPayableAmount,
+  };
+}
+
 export function calculateDeliveryPricing(thirdPartyCharge: number): DeliveryPricing {
   const platformFeeAmount = roundCurrency(
     thirdPartyCharge * (DOOT_PLATFORM_FEE_PERCENT / 100),

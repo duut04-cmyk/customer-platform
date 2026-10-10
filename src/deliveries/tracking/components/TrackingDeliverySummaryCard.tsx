@@ -58,9 +58,17 @@ export default function TrackingDeliverySummaryCard({
   delivery,
 }: TrackingDeliverySummaryCardProps) {
   const photos = getPackagePhotos(delivery);
+  const eta =
+    delivery.estimatedArrival &&
+    delivery.estimatedArrival !== "—" &&
+    delivery.estimatedArrival !== "Pending update"
+      ? delivery.estimatedArrival
+      : null;
   const timing =
     delivery.pickupWindowLabel ??
-    `${delivery.estimatedDeliveryLabel ?? delivery.dateLabel}, ${delivery.estimatedArrival}`;
+    (eta
+      ? `${delivery.estimatedDeliveryLabel ?? delivery.dateLabel}, ${eta}`
+      : (delivery.bookedAtLabel ?? delivery.dateLabel));
 
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-background">

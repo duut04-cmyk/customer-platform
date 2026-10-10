@@ -16,8 +16,10 @@ export const DELIVERY_ENDPOINTS = {
   verifyDeliveryOtp: (id: string) => `/deliveries/${id}/delivery/verify-otp`,
   rating: (id: string) => `/deliveries/${id}/rating`,
   feedback: (id: string) => `/deliveries/${id}/feedback`,
+  experience: (id: string) => `/deliveries/${id}/experience`,
   cancel: (id: string) => `/deliveries/${id}/cancel`,
   cancellation: (id: string) => `/deliveries/${id}/cancellation`,
+  devAdvance: (id: string) => `/deliveries/${id}/dev/advance`,
 } as const;
 
 export const IDEMPOTENCY_HEADER = "Idempotency-Key";

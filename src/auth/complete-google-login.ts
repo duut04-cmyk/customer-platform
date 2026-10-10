@@ -1,5 +1,5 @@
 import { googleLogin } from "@/api/auth";
-import { establishSession } from "@/auth/establishSession";
+import { establishCustomerSession } from "@/auth/establishSession";
 
 type AuthRouter = {
   push: (href: string) => void;
@@ -13,7 +13,7 @@ export async function completeGoogleLogin(
   onAuthSuccess?: () => void,
 ) {
   const response = await googleLogin({ credential });
-  establishSession(response.data, response.data.user);
+  establishCustomerSession(response.data, response.data.user);
   onAuthSuccess?.();
   router.replace(redirectTo);
 }
