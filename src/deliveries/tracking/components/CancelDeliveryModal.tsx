@@ -21,6 +21,11 @@ export default function CancelDeliveryModal({
   const [selectedReason, setSelectedReason] = useState<CancelDeliveryReason | "">("");
   const [otherReason, setOtherReason] = useState("");
 
+  const resetForm = () => {
+    setSelectedReason("");
+    setOtherReason("");
+  };
+
   const handleConfirm = () => {
     if (!selectedReason) return;
     if (selectedReason === "Other") {
@@ -28,13 +33,11 @@ export default function CancelDeliveryModal({
     } else {
       onConfirm(selectedReason);
     }
-    setSelectedReason("");
-    setOtherReason("");
   };
 
   const handleClose = () => {
-    setSelectedReason("");
-    setOtherReason("");
+    if (confirming) return;
+    resetForm();
     onClose();
   };
 
@@ -43,7 +46,12 @@ export default function CancelDeliveryModal({
     (selectedReason !== "Other" || otherReason.trim().length > 0);
 
   return (
-    <Modal open={open} onClose={handleClose} className="max-w-md !p-0">
+    <Modal
+      open={open}
+      onClose={handleClose}
+      preventClose={confirming}
+      className="max-w-md !p-0"
+    >
       <div className="p-6">
         <h2 className="text-body-lg font-bold text-foreground">Cancel delivery?</h2>
         <p className="mt-2 text-small text-muted-foreground">

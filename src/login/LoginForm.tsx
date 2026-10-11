@@ -1,24 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { login } from "@/api/auth";
+import { authFormStackClassName } from "@/auth/auth-modal-layout";
 import { getAuthErrorMessage } from "@/auth/auth-errors";
+import AuthDivider from "@/auth/components/AuthDivider";
+import ForgotPasswordModal from "@/auth/components/ForgotPasswordModal";
+import GoogleButton from "@/auth/components/GoogleButton";
+import { LoadingSpinner } from "@/auth/components/icons";
+import PasswordInput from "@/auth/components/PasswordInput";
 import { establishCustomerSession } from "@/auth/establishSession";
 import Button from "@/common/components/Button";
 import Input from "@/common/components/Input";
-import { authFormStackClassName } from "@/auth/auth-modal-layout";
-import AuthDivider from "./AuthDivider";
-import ForgotPasswordModal from "./ForgotPasswordModal";
-import GoogleButton from "./GoogleButton";
-import { LoadingSpinner } from "./icons";
-import PasswordInput from "./PasswordInput";
 
 type LoginFormProps = {
   onSwitchToSignup: () => void;
   onAuthSuccess?: () => void;
   redirectTo?: string;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 type FieldErrors = {
@@ -30,13 +31,21 @@ export default function LoginForm({
   onSwitchToSignup,
   onAuthSuccess,
   redirectTo = "/dashboard",
+  onBusyChange,
 }: LoginFormProps) {
   const router = useRouter();
   const emailId = useId();
   const passwordId = useId();
   const [loading, setLoading] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [forgotOpen, setForgotOpen] = useState(false);
+
+  const authBusy = loading || googleBusy;
+
+  useEffect(() => {
+    onBusyChange?.(authBusy);
+  }, [authBusy, onBusyChange]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -83,6 +92,7 @@ export default function LoginForm({
           disabled={loading}
           redirectTo={redirectTo}
           onAuthSuccess={onAuthSuccess}
+          onBusyChange={setGoogleBusy}
         />
 
         <AuthDivider />
@@ -102,6 +112,7 @@ export default function LoginForm({
               placeholder="Enter your email"
               error={!!errors.email}
               autoComplete="email"
+              disabled={authBusy}
             />
             {errors.email && (
               <p className="mt-1.5 text-caption text-foreground" role="alert">
@@ -133,7 +144,8 @@ export default function LoginForm({
               <button
                 type="button"
                 onClick={() => setForgotOpen(true)}
-                className="cursor-pointer text-caption font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
+                disabled={authBusy}
+                className="cursor-pointer text-caption font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Forgot password?
               </button>
@@ -143,7 +155,7 @@ export default function LoginForm({
           <Button
             type="submit"
             className="h-11 w-full gap-2 rounded-[6px] text-body font-semibold"
-            disabled={loading}
+            disabled={authBusy}
             aria-busy={loading}
           >
             {loading ? (
@@ -162,7 +174,8 @@ export default function LoginForm({
           <button
             type="button"
             onClick={onSwitchToSignup}
-            className="cursor-pointer font-semibold text-foreground transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
+            disabled={authBusy}
+            className="cursor-pointer font-semibold text-foreground transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create an account
           </button>

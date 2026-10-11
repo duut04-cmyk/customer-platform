@@ -16,12 +16,14 @@ type GoogleButtonProps = {
   disabled?: boolean;
   redirectTo?: string;
   onAuthSuccess?: () => void;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 export default function GoogleButton({
   disabled = false,
   redirectTo = "/dashboard",
   onAuthSuccess,
+  onBusyChange,
 }: GoogleButtonProps) {
   const router = useRouter();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -29,6 +31,7 @@ export default function GoogleButton({
   const [sdkReady, setSdkReady] = useState(false);
   const [sdkError, setSdkError] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const [googlePromptPending, setGooglePromptPending] = useState(false);
   const clientId = getGoogleClientIdFromEnv();
 
   const handleCredential = useCallback(
@@ -37,6 +40,7 @@ export default function GoogleButton({
 
       signingInRef.current = true;
       setSigningIn(true);
+      setGooglePromptPending(false);
       try {
         await completeGoogleLogin(credential, router, redirectTo, onAuthSuccess);
         toast.success("Signed in successfully.");
@@ -91,8 +95,26 @@ export default function GoogleButton({
   }, [canUseGoogle, clientId, handleCredential]);
 
   const isLoadingSdk = canUseGoogle && !sdkReady && !sdkError;
-  const isBusy = disabled || signingIn || isLoadingSdk;
+  const isBusy = disabled || signingIn || isLoadingSdk || googlePromptPending;
   const showGoogleOverlay = canUseGoogle && sdkReady && !sdkError;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+  }, [isBusy, onBusyChange]);
+
+  useEffect(() => {
+    const resetPromptIfIdle = () => {
+      if (googlePromptPending && !signingInRef.current) {
+        window.setTimeout(() => {
+          if (!signingInRef.current) {
+            setGooglePromptPending(false);
+          }
+        }, 400);
+      }
+    };
+    window.addEventListener("focus", resetPromptIfIdle);
+    return () => window.removeEventListener("focus", resetPromptIfIdle);
+  }, [googlePromptPending]);
 
   const handleFallbackClick = () => {
     if (isBusy || showGoogleOverlay) return;
@@ -105,6 +127,12 @@ export default function GoogleButton({
     }
 
     toast.error("Google sign-in failed to load. Refresh and try again.");
+  };
+
+  const handleGoogleOverlayPointerDown = () => {
+    if (showGoogleOverlay && !signingInRef.current) {
+      setGooglePromptPending(true);
+    }
   };
 
   return (
@@ -128,6 +156,7 @@ export default function GoogleButton({
 
       <div
         ref={overlayRef}
+        onPointerDownCapture={handleGoogleOverlayPointerDown}
         className={
           showGoogleOverlay
             ? "absolute inset-0 overflow-hidden opacity-[0.011] [&_div]:!h-full [&_iframe]:!h-full [&_iframe]:!w-full"

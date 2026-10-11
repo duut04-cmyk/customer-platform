@@ -31,6 +31,7 @@ export default function TrackingInProgressView({
   simulating = false,
 }: TrackingInProgressViewProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelModalKey, setCancelModalKey] = useState(0);
   const showCancel = canCancelDelivery(delivery.status);
 
   return (
@@ -60,7 +61,10 @@ export default function TrackingInProgressView({
                   type="button"
                   variant="secondary"
                   className="h-10 rounded-[6px] border-red-200 px-5 text-small font-semibold text-red-600 hover:bg-red-50"
-                  onClick={() => setCancelOpen(true)}
+                  onClick={() => {
+                    setCancelModalKey((key) => key + 1);
+                    setCancelOpen(true);
+                  }}
                 >
                   Cancel delivery
                 </Button>
@@ -79,6 +83,7 @@ export default function TrackingInProgressView({
       </div>
 
       <CancelDeliveryModal
+        key={cancelModalKey}
         open={cancelOpen}
         onClose={() => setCancelOpen(false)}
         confirming={cancelling}
