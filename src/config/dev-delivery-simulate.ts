@@ -15,22 +15,6 @@ export function canSimulateDeliveryProvider(providerCode?: string): boolean {
   return providerCode === "MOCK";
 }
 
-const STEP_LABELS: Record<string, string> = {
-  ASSIGN_DRIVER: "Assign driver",
-  ISSUE_PICKUP_OTP: "Issue pickup OTP",
-  CONFIRM_PICKUP: "Confirm pickup",
-  START_TRANSIT: "Start transit",
-  ISSUE_DELIVERY_OTP: "Issue delivery OTP",
-  CONFIRM_DELIVERY: "Confirm delivery",
-};
-
-export function devSimulateStepLabel(step: string | undefined): string {
-  if (!step) {
-    return "Simulate next step";
-  }
-  return STEP_LABELS[step] ?? "Simulate next step";
-}
-
 /** Sample driver card for dev UI preview before ASSIGN_DRIVER simulation step. */
 export const DEV_PREVIEW_DRIVER: DeliveryDriver = {
   name: "Aman Singh",

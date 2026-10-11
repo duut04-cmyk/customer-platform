@@ -302,10 +302,6 @@ export function mapListItemToDelivery(item: DeliveryListItemDto): Delivery {
   };
 }
 
-export function isActiveBackendStatus(status: BackendDeliveryStatus): boolean {
-  return !["DELIVERED", "CANCELLED", "FAILED"].includes(status);
-}
-
 /** Immediate UI update after dev simulate advance (avoids waiting on full /history). */
 export function patchDeliveryFromDevSimulateAdvance(
   current: Delivery,

@@ -1,10 +1,4 @@
 import type { Delivery, DeliveryStatus } from "@/deliveries/types";
-import {
-  IconAlert,
-  IconCheck,
-  IconClock,
-  IconTruck,
-} from "@/dashboard/components/icons";
 
 const ACTIVE_STATUSES: DeliveryStatus[] = [
   "booked",
@@ -26,13 +20,6 @@ export function getStatusPillClasses(status: DeliveryStatus): string {
     return "bg-emerald-50 text-emerald-700";
   }
   return "bg-surface text-foreground";
-}
-
-export function getStatusIcon(status: DeliveryStatus) {
-  if (status === "delivered") return IconCheck;
-  if (status === "failed" || status === "cancelled") return IconAlert;
-  if (ACTIVE_STATUSES.includes(status)) return IconTruck;
-  return IconClock;
 }
 
 export function getStatusSubtext(delivery: Delivery): string | null {

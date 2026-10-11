@@ -84,13 +84,3 @@ export function filterByDatePeriod(
     return created >= start && created < end;
   });
 }
-
-/** @deprecated Use filterByDatePeriod */
-export function filterByDateRange(
-  deliveries: Delivery[],
-  range: "7d" | "30d" | "all",
-): Delivery[] {
-  if (range === "all") return deliveries;
-  const period: DatePeriod = range === "7d" ? "last_7_days" : "this_month";
-  return filterByDatePeriod(deliveries, period);
-}

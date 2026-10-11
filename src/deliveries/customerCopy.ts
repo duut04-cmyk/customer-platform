@@ -1,41 +1,5 @@
 import type { DeliveryStatus } from "./types";
 
-export function getDeliveryStatusMessage(status: DeliveryStatus): string {
-  switch (status) {
-    case "delivered":
-      return "Your delivery has been completed.";
-    case "cancelled":
-      return "This delivery was cancelled.";
-    case "failed":
-      return "This delivery could not be completed.";
-    case "booked":
-      return "Your delivery is booked.";
-    case "driver_assigned":
-      return "A delivery partner has been assigned.";
-    case "pickup_otp_pending":
-      return "Verify the pickup code to continue.";
-    case "delivery_otp_pending":
-      return "Verify the delivery code to complete handoff.";
-    case "picked_up":
-      return "Your package has been picked up.";
-    case "in_transit":
-      return "Your delivery is on the way.";
-    default:
-      return "Your delivery is being processed.";
-  }
-}
-
-export function isActiveDeliveryStatus(status: DeliveryStatus): boolean {
-  return (
-    status === "booked" ||
-    status === "driver_assigned" ||
-    status === "pickup_otp_pending" ||
-    status === "picked_up" ||
-    status === "in_transit" ||
-    status === "delivery_otp_pending"
-  );
-}
-
 export function getTrackingHeroTitle(status: DeliveryStatus): string {
   switch (status) {
     case "booked":
@@ -91,14 +55,3 @@ export const CANCEL_DELIVERY_REASONS = [
 ] as const;
 
 export type CancelDeliveryReason = (typeof CANCEL_DELIVERY_REASONS)[number];
-
-export const OTP_COPY = {
-  pickupTitle: "Pickup verification",
-  pickupPending:
-    "Share this code with your delivery partner when they pick up the package.",
-  pickupVerified: "Pickup verified successfully.",
-  deliveryTitle: "Delivery verification",
-  deliveryPending: "Share this code with the recipient when the package is delivered.",
-  deliveryVerified: "Delivery verified successfully.",
-  codeLabel: "OTP code",
-} as const;
