@@ -100,6 +100,8 @@ export type Delivery = {
   serviceType?: string;
   serviceTagline?: string;
   packagePhotoCount?: number;
+  /** True when API stored photos exist but signed URLs could not be resolved. */
+  packagePhotosUnavailable?: boolean;
   specialInstructions?: string;
   deliveryEta?: string;
   deliveredAtLabel?: string;

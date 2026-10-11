@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { IconCamera } from "@/dashboard/components/icons";
-import { uploadPackagePhotoFile } from "@/lib/package-photos/upload-package-photo";
 import {
   MAX_PACKAGE_PHOTOS,
   MIN_PACKAGE_PHOTOS,
@@ -40,49 +39,10 @@ export default function PackagePhotoUpload({
   useEffect(() => {
     photosRef.current = photos;
   }, [photos]);
-  const [uploadingIds, setUploadingIds] = useState<Set<string>>(() => new Set());
 
   const revokePreview = (photo: PackagePhotoEntry) => {
     if (photo.previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(photo.previewUrl);
-    }
-  };
-
-  const replacePhoto = (id: string, next: PackagePhotoEntry) => {
-    onChange(photosRef.current.map((photo) => (photo.id === id ? next : photo)));
-  };
-
-  const removePhotoById = (id: string) => {
-    const current = photosRef.current;
-    const removed = current.find((photo) => photo.id === id);
-    if (removed) revokePreview(removed);
-    onChange(current.filter((photo) => photo.id !== id));
-  };
-
-  const uploadPending = async (entry: PackagePhotoEntry, file: File) => {
-    setUploadingIds((prev) => new Set(prev).add(entry.id));
-    try {
-      const uploaded = await uploadPackagePhotoFile(file, uploadBatchId);
-      if (entry.previewUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(entry.previewUrl);
-      }
-      replacePhoto(entry.id, {
-        id: entry.id,
-        previewUrl: uploaded.previewUrl,
-        mimeType: uploaded.mimeType,
-        fileSizeBytes: uploaded.fileSizeBytes,
-        objectKey: uploaded.objectKey,
-        storageProvider: uploaded.storageProvider,
-      });
-    } catch {
-      setLocalError("Could not upload a photo. Remove it and try again.");
-      removePhotoById(entry.id);
-    } finally {
-      setUploadingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(entry.id);
-        return next;
-      });
     }
   };
 
@@ -106,15 +66,13 @@ export default function PackagePhotoUpload({
         setLocalError("Each package photo must be at most 5MB.");
         continue;
       }
-      const entry: PackagePhotoEntry = {
+      additions.push({
         id: crypto.randomUUID(),
         previewUrl: URL.createObjectURL(file),
         mimeType: mime,
         fileSizeBytes: file.size,
         pendingFile: file,
-      };
-      additions.push(entry);
-      void uploadPending(entry, file);
+      });
     }
 
     if (additions.length > 0) {
@@ -136,45 +94,35 @@ export default function PackagePhotoUpload({
   const showEmptySlots = photos.length < MIN_PACKAGE_PHOTOS;
   const emptySlotCount = showEmptySlots ? photosNeeded : 0;
   const canAddMore = photos.length < MAX_PACKAGE_PHOTOS;
-  const isUploading = uploadingIds.size > 0;
 
   return (
     <div className="space-y-3">
       <p className="text-caption text-muted-foreground">
-        Photos upload as soon as you add them so booking stays fast.
+        Photos are saved on your device until you submit from review. They upload when
+        we create your delivery.
       </p>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        {photos.map((photo, index) => {
-          const uploading = uploadingIds.has(photo.id) || Boolean(photo.pendingFile);
-          return (
-            <div
-              key={photo.id}
-              className="group relative h-28 overflow-hidden rounded-xl border border-border bg-white shadow-sm"
+        {photos.map((photo, index) => (
+          <div
+            key={photo.id}
+            className="group relative h-28 overflow-hidden rounded-xl border border-border bg-white shadow-sm"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photo.previewUrl}
+              alt={`Package photo ${index + 1}`}
+              className="h-full w-full object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => handleRemove(index)}
+              className="absolute right-1 top-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-foreground/80 text-caption font-bold text-background opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+              aria-label={`Remove photo ${index + 1}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.previewUrl}
-                alt={`Package photo ${index + 1}`}
-                className="h-full w-full object-cover"
-              />
-              {uploading ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-foreground/40">
-                  <span className="rounded-full bg-background px-2 py-1 text-[10px] font-semibold text-foreground">
-                    Uploading…
-                  </span>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => handleRemove(index)}
-                className="absolute right-1 top-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-foreground/80 text-caption font-bold text-background opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
-                aria-label={`Remove photo ${index + 1}`}
-              >
-                ×
-              </button>
-            </div>
-          );
-        })}
+              ×
+            </button>
+          </div>
+        ))}
 
         {showEmptySlots &&
           Array.from({ length: emptySlotCount }).map((_, slotIndex) => {
@@ -183,7 +131,7 @@ export default function PackagePhotoUpload({
               <button
                 key={`empty-${slotIndex}`}
                 type="button"
-                disabled={!uploadBatchId || isUploading}
+                disabled={!uploadBatchId}
                 onClick={() => inputRef.current?.click()}
                 className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-white px-2 py-2 text-center shadow-sm transition-colors hover:border-foreground/25 hover:bg-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -208,7 +156,7 @@ export default function PackagePhotoUpload({
       {photos.length >= MIN_PACKAGE_PHOTOS && canAddMore && (
         <button
           type="button"
-          disabled={!uploadBatchId || isUploading}
+          disabled={!uploadBatchId}
           onClick={() => inputRef.current?.click()}
           className="cursor-pointer text-caption font-semibold text-accent hover:text-accent/80 disabled:cursor-not-allowed disabled:opacity-60"
         >

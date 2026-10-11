@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDeliveryHistory } from "@/api/deliveries/delivery.api";
 import { ApiError } from "@/api/errors";
-import { mapHistoryToDelivery } from "../map-history-to-delivery";
+import type { BackendDeliveryStatus } from "@/api/deliveries/delivery.types";
+import {
+  mapHistoryToDelivery,
+  patchDeliveryFromDevSimulateAdvance,
+} from "../map-history-to-delivery";
 import type { Delivery } from "../types";
 import { getDeliveryHistoryPollMs } from "./delivery-poll-config";
 import { fetchDeliveryLiveSnapshot } from "./fetch-delivery-live-snapshot";
@@ -14,6 +18,8 @@ type UseDeliveryHistoryResult = {
   isRefreshing: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  /** After dev/advance: patch status locally, then refresh map/driver via lightweight APIs only. */
+  applyDevSimulateAdvance: (backendStatus: BackendDeliveryStatus) => Promise<void>;
 };
 
 type FetchMode = "initial" | "background";
@@ -128,11 +134,38 @@ export function useDeliveryHistory(
     });
   }, [fetchHistory]);
 
+  const applyDevSimulateAdvance = useCallback(
+    async (backendStatus: BackendDeliveryStatus) => {
+      const current = deliveryRef.current;
+      if (!current) return;
+
+      const patched = patchDeliveryFromDevSimulateAdvance(current, backendStatus);
+      setDelivery(patched);
+      setIsRefreshing(true);
+
+      try {
+        const updated = await fetchDeliveryLiveSnapshot(deliveryId, patched);
+        if (!mountedRef.current) return;
+        setDelivery(updated);
+        setError(null);
+      } catch {
+        if (!mountedRef.current) return;
+        // Keep status patch; poll will reconcile later.
+      } finally {
+        if (mountedRef.current) {
+          setIsRefreshing(false);
+        }
+      }
+    },
+    [deliveryId],
+  );
+
   return {
     delivery,
     loading,
     isRefreshing,
     error,
     refresh,
+    applyDevSimulateAdvance,
   };
 }
