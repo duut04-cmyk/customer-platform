@@ -1,3 +1,2 @@
-export default function Login() {
-  return null;
-}
+export { default as LoginForm } from "./LoginForm";
+export { default } from "./LoginForm";

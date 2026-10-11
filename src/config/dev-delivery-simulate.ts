@@ -1,10 +1,10 @@
 import type { DeliveryDriver, DeliveryStatus } from "@/deliveries/types";
 
-/** Dev-only track page control to advance MOCK deliveries through the happy path. */
+/**
+ * Track-page simulator for MOCK deliveries. Controlled by env flag so staging/production
+ * builds can enable it without relying on NODE_ENV (Next sets production on live deploys).
+ */
 export function isDevDeliverySimulateEnabled(): boolean {
-  if (process.env.NODE_ENV === "production") {
-    return false;
-  }
   return process.env.NEXT_PUBLIC_DEV_SIMULATE_DELIVERY === "true";
 }
 

@@ -8,6 +8,8 @@ type ModalProps = {
   children: ReactNode;
   title?: string;
   className?: string;
+  /** When true, backdrop click and Escape do not dismiss the dialog. */
+  preventClose?: boolean;
 };
 
 export default function Modal({
@@ -16,6 +18,7 @@ export default function Modal({
   children,
   title,
   className = "",
+  preventClose = false,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
@@ -27,7 +30,7 @@ export default function Modal({
     previousActiveElement.current = document.activeElement as HTMLElement;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !preventClose) {
         onClose();
       }
     };
@@ -45,7 +48,7 @@ export default function Modal({
       document.body.style.overflow = "";
       previousActiveElement.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open, onClose, preventClose]);
 
   if (!open) return null;
 
@@ -53,7 +56,7 @@ export default function Modal({
     <div className="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-4" role="presentation">
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
-        onClick={onClose}
+        onClick={preventClose ? undefined : onClose}
         aria-hidden="true"
       />
       <div className="flex min-h-full items-center justify-center">

@@ -18,6 +18,7 @@ type VerifyEmailOtpFormProps = {
   onBack?: () => void;
   resendHandler: (email: string) => Promise<void>;
   verifyHandler: (email: string, otp: string) => Promise<void>;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 function formatCooldown(seconds: number) {
@@ -35,6 +36,7 @@ export default function VerifyEmailOtpForm({
   onBack,
   resendHandler,
   verifyHandler,
+  onBusyChange,
 }: VerifyEmailOtpFormProps) {
   const otpId = useId();
   const [otp, setOtp] = useState("");
@@ -48,6 +50,10 @@ export default function VerifyEmailOtpForm({
   useEffect(() => {
     startCooldown();
   }, [startCooldown]);
+
+  useEffect(() => {
+    onBusyChange?.(loading || resending);
+  }, [loading, onBusyChange, resending]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

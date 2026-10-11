@@ -1,26 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { login, resendEmailOtp, signup, verifyEmailOtp } from "@/api/auth";
 import { getAuthErrorMessage } from "@/auth/auth-errors";
+import AuthDivider from "@/auth/components/AuthDivider";
+import GoogleButton from "@/auth/components/GoogleButton";
+import { LoadingSpinner } from "@/auth/components/icons";
+import PasswordInput from "@/auth/components/PasswordInput";
+import VerifyEmailOtpForm from "@/auth/components/VerifyEmailOtpForm";
 import { establishCustomerSession } from "@/auth/establishSession";
 import { mapE164ToSplitPhoneFields } from "@/auth/phone-mapper";
 import { validatePassword } from "@/auth/passwordPolicy";
 import Button from "@/common/components/Button";
 import Input from "@/common/components/Input";
 import PhoneInput from "@/common/components/PhoneInput";
-import AuthDivider from "./AuthDivider";
-import GoogleButton from "./GoogleButton";
-import { LoadingSpinner } from "./icons";
-import PasswordInput from "./PasswordInput";
-import VerifyEmailOtpForm from "./VerifyEmailOtpForm";
 
 type SignupFormProps = {
   onSwitchToLogin: () => void;
   onAuthSuccess?: () => void;
   redirectTo?: string;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 type FieldErrors = {
@@ -37,6 +38,7 @@ export default function SignupForm({
   onSwitchToLogin,
   onAuthSuccess,
   redirectTo = "/dashboard",
+  onBusyChange,
 }: SignupFormProps) {
   const router = useRouter();
   const nameId = useId();
@@ -49,7 +51,15 @@ export default function SignupForm({
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [verifyBusy, setVerifyBusy] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  const authBusy = loading || googleBusy || verifyBusy;
+
+  useEffect(() => {
+    onBusyChange?.(authBusy);
+  }, [authBusy, onBusyChange]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -101,6 +111,7 @@ export default function SignupForm({
       <VerifyEmailOtpForm
         email={signupEmail}
         onBack={() => setStep("details")}
+        onBusyChange={setVerifyBusy}
         onVerified={async () => {
           try {
             const response = await login({
@@ -148,6 +159,7 @@ export default function SignupForm({
         disabled={loading}
         redirectTo={redirectTo}
         onAuthSuccess={onAuthSuccess}
+        onBusyChange={setGoogleBusy}
       />
 
       <AuthDivider />
@@ -168,6 +180,7 @@ export default function SignupForm({
             placeholder="Your name"
             error={!!errors.name}
             autoComplete="name"
+            disabled={authBusy}
           />
           {errors.name && (
             <p className={fieldErrorClassName} role="alert">
@@ -187,6 +200,7 @@ export default function SignupForm({
             placeholder="you@example.com"
             error={!!errors.email}
             autoComplete="email"
+            disabled={authBusy}
           />
           {errors.email && (
             <p className={fieldErrorClassName} role="alert">
@@ -239,6 +253,7 @@ export default function SignupForm({
               name="terms"
               type="checkbox"
               className="auth-checkbox mt-0.5"
+              disabled={authBusy}
             />
             <span className="text-caption leading-snug text-muted-foreground sm:text-small">
               I agree to Doot&apos;s{" "}
@@ -270,7 +285,7 @@ export default function SignupForm({
           <Button
             type="submit"
             className="h-11 w-full gap-2 rounded-[6px] text-body font-semibold"
-            disabled={loading}
+            disabled={authBusy}
             aria-busy={loading}
           >
             {loading ? (
@@ -290,7 +305,8 @@ export default function SignupForm({
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="cursor-pointer font-semibold text-foreground transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
+          disabled={authBusy}
+          className="cursor-pointer font-semibold text-foreground transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Sign in
         </button>

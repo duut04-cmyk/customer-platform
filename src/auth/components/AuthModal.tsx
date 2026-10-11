@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   authModalBodyClassName,
   authModalCloseButtonClassName,
@@ -8,8 +9,8 @@ import {
 } from "@/auth/auth-modal-layout";
 import Logo from "@/common/components/Logo";
 import Modal from "@/common/components/Modal";
-import LoginForm from "./LoginForm";
-import SignupForm from "./SignupForm";
+import LoginForm from "@/login/LoginForm";
+import SignupForm from "@/signup/SignupForm";
 
 export type AuthMode = "login" | "signup";
 
@@ -20,13 +21,21 @@ type AuthModalProps = {
   redirectTo?: string;
 };
 
-function AuthModalCloseButton({ onClose }: { onClose: () => void }) {
+function AuthModalCloseButton({
+  onClose,
+  disabled,
+}: {
+  onClose: () => void;
+  disabled: boolean;
+}) {
   return (
     <button
       type="button"
-      onClick={onClose}
-      className={authModalCloseButtonClassName}
+      onClick={disabled ? undefined : onClose}
+      disabled={disabled}
+      className={`${authModalCloseButtonClassName} disabled:cursor-not-allowed disabled:opacity-40`}
       aria-label="Close"
+      aria-disabled={disabled}
     >
       <svg
         viewBox="0 0 24 24"
@@ -48,28 +57,50 @@ export default function AuthModal({
   onSwitchMode,
   redirectTo = "/dashboard",
 }: AuthModalProps) {
+  const [authBusy, setAuthBusy] = useState(false);
+  const isOpen = mode !== null;
+  const blockDismiss = isOpen && authBusy;
+
+  const handleClose = () => {
+    setAuthBusy(false);
+    onClose();
+  };
+
+  const handleSwitchMode = (next: AuthMode) => {
+    if (authBusy) return;
+    setAuthBusy(false);
+    onSwitchMode(next);
+  };
+
   return (
-    <Modal open={mode !== null} onClose={onClose} className={authModalShellClassName}>
+    <Modal
+      open={isOpen}
+      onClose={handleClose}
+      preventClose={blockDismiss}
+      className={authModalShellClassName}
+    >
       <div className={authModalHeaderClassName}>
-        <AuthModalCloseButton onClose={onClose} />
+        <AuthModalCloseButton onClose={handleClose} disabled={blockDismiss} />
         <div className="flex justify-center pt-1">
           <Logo className="text-xl md:text-2xl" />
         </div>
       </div>
 
-      <div className={authModalBodyClassName}>
+      <div className={authModalBodyClassName} aria-busy={authBusy}>
         {mode === "login" && (
           <LoginForm
-            onSwitchToSignup={() => onSwitchMode("signup")}
-            onAuthSuccess={onClose}
+            onSwitchToSignup={() => handleSwitchMode("signup")}
+            onAuthSuccess={handleClose}
             redirectTo={redirectTo}
+            onBusyChange={setAuthBusy}
           />
         )}
         {mode === "signup" && (
           <SignupForm
-            onSwitchToLogin={() => onSwitchMode("login")}
-            onAuthSuccess={onClose}
+            onSwitchToLogin={() => handleSwitchMode("login")}
+            onAuthSuccess={handleClose}
             redirectTo={redirectTo}
+            onBusyChange={setAuthBusy}
           />
         )}
       </div>
