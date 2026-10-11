@@ -6,11 +6,11 @@ import type {
 } from "@/create-delivery/types";
 import {
   formatISODate,
-  getEffectiveSizePreset,
   initialDeliveryFormData,
-  MEDIUM_PACKAGE_MAX_WEIGHT_KG,
-  SMALL_PACKAGE_MAX_WEIGHT_KG,
+  resolvePackageDimensions,
+  resolvePackageWeightKg,
   syncScheduledAt,
+  weightKgToPackageSizeTier,
   type PackageSizeTier,
   type PackageType,
   type Timing,
@@ -64,47 +64,16 @@ function mapRequirements(requirements: string[]): BackendHandlingRequirement[] {
   return [...new Set(mapped)];
 }
 
-function deriveBackendSizeTier(weightKg: number): BackendSizeTier {
-  if (weightKg <= SMALL_PACKAGE_MAX_WEIGHT_KG) return "SMALL";
-  if (weightKg <= MEDIUM_PACKAGE_MAX_WEIGHT_KG) return "MEDIUM";
-  return "LARGE";
-}
-
-function resolveWeightKg(data: DeliveryFormData): number {
-  const parsed = Number.parseFloat(data.weight);
-  if (!Number.isNaN(parsed) && parsed > 0) return parsed;
-  const preset = getEffectiveSizePreset(data);
-  if (preset?.weight) return preset.weight;
-  return 0.5;
-}
-
-function resolveDimensions(data: DeliveryFormData): {
-  lengthCm: number | null;
-  widthCm: number | null;
-  heightCm: number | null;
-} {
-  const length = Number.parseFloat(data.length);
-  const width = Number.parseFloat(data.width);
-  const height = Number.parseFloat(data.height);
-  if (
-    !Number.isNaN(length) &&
-    !Number.isNaN(width) &&
-    !Number.isNaN(height) &&
-    length > 0 &&
-    width > 0 &&
-    height > 0
-  ) {
-    return { lengthCm: length, widthCm: width, heightCm: height };
+function mapWeightToBackendSizeTier(weightKg: number): BackendSizeTier {
+  const tier = weightKgToPackageSizeTier(weightKg);
+  switch (tier) {
+    case "small":
+      return "SMALL";
+    case "medium":
+      return "MEDIUM";
+    case "large":
+      return "LARGE";
   }
-  const preset = getEffectiveSizePreset(data);
-  if (preset) {
-    return {
-      lengthCm: preset.length,
-      widthCm: preset.width,
-      heightCm: preset.height,
-    };
-  }
-  return { lengthCm: null, widthCm: null, heightCm: null };
 }
 
 function formatAvailabilityLabel(option: CustomerSelectedOptionDto): string {
@@ -242,8 +211,8 @@ export function mapDeliveryDetailToFormData(
 }
 
 export function mapFormToCreateRequest(data: DeliveryFormData): CreateDeliveryRequest {
-  const weightKg = resolveWeightKg(data);
-  const dims = resolveDimensions(data);
+  const weightKg = resolvePackageWeightKg(data);
+  const dims = resolvePackageDimensions(data);
   const pickupPhone = mapE164ToSplitPhoneFields(data.pickupContactPhone);
   const dropPhone = mapE164ToSplitPhoneFields(data.dropContactPhone);
 
@@ -296,7 +265,7 @@ export function mapFormToCreateRequest(data: DeliveryFormData): CreateDeliveryRe
       packageType: mapPackageType(data.packageType),
       description: data.packageDescription.trim() || null,
       weightKg,
-      sizeTier: deriveBackendSizeTier(weightKg),
+      sizeTier: mapWeightToBackendSizeTier(weightKg),
       quantity: 1,
       photos: data.packagePhotos
         .filter(

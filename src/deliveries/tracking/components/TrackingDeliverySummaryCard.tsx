@@ -129,6 +129,13 @@ export default function TrackingDeliverySummaryCard({
           <p className="text-small font-medium text-foreground">
             {delivery.weight} · {delivery.dimensions}
           </p>
+          {delivery.packagePhotosUnavailable ? (
+            <p className="mt-2 text-caption text-muted-foreground">
+              {delivery.packagePhotoCount ?? 1} package photo
+              {(delivery.packagePhotoCount ?? 1) === 1 ? "" : "s"} on file — preview
+              unavailable.
+            </p>
+          ) : null}
           {photos.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {photos.map((url, index) => (

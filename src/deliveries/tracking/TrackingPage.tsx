@@ -9,9 +9,9 @@ import {
 } from "@/api/deliveries/delivery.api";
 import {
   canSimulateDeliveryProvider,
-  devSimulateStepLabel,
   isDevDeliverySimulateEnabled,
 } from "@/config/dev-delivery-simulate";
+import type { BackendDeliveryStatus } from "@/api/deliveries/delivery.types";
 import { mapCancelReasonToBackend } from "@/api/deliveries/cancel-reasons";
 import { ApiError } from "@/api/errors";
 import type { CancelDeliveryReason } from "@/deliveries/customerCopy";
@@ -26,15 +26,19 @@ import TrackingInProgressView from "./components/TrackingInProgressView";
 type TrackingPageProps = {
   delivery: Delivery;
   onRefresh: () => Promise<void>;
+  onDevSimulateAdvance: (backendStatus: BackendDeliveryStatus) => Promise<void>;
 };
 
-export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps) {
+export default function TrackingPage({
+  delivery,
+  onRefresh,
+  onDevSimulateAdvance,
+}: TrackingPageProps) {
   const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [simulating, setSimulating] = useState(false);
   const [simulateError, setSimulateError] = useState<string | null>(null);
-  const [simulateHint, setSimulateHint] = useState<string | null>(null);
   const showDevSimulate =
     isDevDeliverySimulateEnabled() &&
     canSimulateDeliveryProvider(delivery.providerCode);
@@ -73,16 +77,9 @@ export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps)
   const handleSimulateStep = useCallback(async () => {
     setSimulating(true);
     setSimulateError(null);
-    setSimulateHint(null);
     try {
       const result = await advanceDevDeliveryStep(delivery.id);
-      const { devOtp, nextStep } = result.data;
-      if (devOtp) {
-        setSimulateHint(`Dev OTP: ${devOtp} (also sent flow skipped in simulation)`);
-      } else if (nextStep) {
-        setSimulateHint(`Next: ${devSimulateStepLabel(nextStep)}`);
-      }
-      await onRefresh();
+      await onDevSimulateAdvance(result.data.status as BackendDeliveryStatus);
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -94,7 +91,7 @@ export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps)
     } finally {
       setSimulating(false);
     }
-  }, [delivery.id, onRefresh]);
+  }, [delivery.id, onDevSimulateAdvance]);
 
   const handleSubmitExperience = async (payload: DeliveryExperienceSubmitPayload) => {
     const { comment, ...ratings } = payload;
@@ -115,11 +112,6 @@ export default function TrackingPage({ delivery, onRefresh }: TrackingPageProps)
         {(cancelError || simulateError) && (
           <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-small text-red-700">
             {cancelError ?? simulateError}
-          </p>
-        )}
-        {simulateHint && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-small text-amber-900">
-            {simulateHint}
           </p>
         )}
         {isCompleted && (

@@ -9,8 +9,8 @@ export function isDevDeliverySimulateEnabled(): boolean {
 }
 
 export function canSimulateDeliveryProvider(providerCode?: string): boolean {
-  if (!providerCode) {
-    return true;
+  if (!isDevDeliverySimulateEnabled()) {
+    return false;
   }
   return providerCode === "MOCK";
 }
@@ -47,8 +47,14 @@ export function canShowDevDriverPreview(status: DeliveryStatus): boolean {
   return status !== "cancelled" && status !== "failed" && status !== "delivered";
 }
 
-export function resolveDevPreviewDriver(status: DeliveryStatus): DeliveryDriver | null {
+export function resolveDevPreviewDriver(
+  status: DeliveryStatus,
+  providerCode?: string,
+): DeliveryDriver | null {
   if (!isDevDeliverySimulateEnabled() || !canShowDevDriverPreview(status)) {
+    return null;
+  }
+  if (providerCode !== "MOCK") {
     return null;
   }
   return DEV_PREVIEW_DRIVER;

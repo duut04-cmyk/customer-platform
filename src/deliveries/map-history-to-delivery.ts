@@ -180,9 +180,15 @@ export function mapHistoryToDelivery(history: DeliveryHistoryDetail): Delivery {
       ? formatEventTime(history.otp.delivery?.verifiedAt)
       : undefined;
 
-  const packagePhotoUrls = (history.package.photos ?? [])
+  const packagePhotoRecords = history.package.photos ?? [];
+  const packagePhotoUrls = packagePhotoRecords
     .map((photo) => photo.url)
     .filter((url): url is string => Boolean(url));
+  const packagePhotoStoredCount = packagePhotoRecords.filter(
+    (photo) => photo.objectKey,
+  ).length;
+  const packagePhotosUnavailable =
+    packagePhotoStoredCount > 0 && packagePhotoUrls.length === 0;
 
   return {
     id: history.delivery.id,
@@ -258,6 +264,8 @@ export function mapHistoryToDelivery(history: DeliveryHistoryDetail): Delivery {
       : undefined,
     packagePhotoUrls: packagePhotoUrls.length > 0 ? packagePhotoUrls : undefined,
     packagePhotoUrl: packagePhotoUrls[0],
+    packagePhotoCount: packagePhotoStoredCount || undefined,
+    packagePhotosUnavailable: packagePhotosUnavailable || undefined,
   };
 }
 
@@ -296,6 +304,22 @@ export function mapListItemToDelivery(item: DeliveryListItemDto): Delivery {
 
 export function isActiveBackendStatus(status: BackendDeliveryStatus): boolean {
   return !["DELIVERED", "CANCELLED", "FAILED"].includes(status);
+}
+
+/** Immediate UI update after dev simulate advance (avoids waiting on full /history). */
+export function patchDeliveryFromDevSimulateAdvance(
+  current: Delivery,
+  backendStatus: BackendDeliveryStatus,
+): Delivery {
+  const frontendStatus = mapBackendStatusToFrontend(backendStatus);
+  if (frontendStatus === current.status) {
+    return current;
+  }
+  return {
+    ...current,
+    status: frontendStatus,
+    statusLabel: STATUS_LABELS[frontendStatus],
+  };
 }
 
 /** Merge lightweight poll payloads into an existing delivery (track/detail background refresh). */

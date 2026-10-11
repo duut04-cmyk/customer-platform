@@ -18,11 +18,10 @@ export type PackageType =
 
 export type PackageSizeTier = "small" | "medium" | "large" | "";
 
-export type SizePreset = {
+export type DimensionPreset = {
   length: number;
   width: number;
   height: number;
-  weight: number;
 };
 
 /** Max weight (kg) for Small — matches backend deriveSizeTier. */
@@ -155,26 +154,26 @@ export const PACKAGE_SIZE_TIER_LABELS: Record<Exclude<PackageSizeTier, "">, stri
   large: "Large / heavy",
 };
 
-const SIZE_PRESETS: Partial<
+const DIMENSION_PRESETS: Partial<
   Record<
     Exclude<PackageType, "">,
-    Partial<Record<Exclude<PackageSizeTier, "">, SizePreset>>
+    Partial<Record<Exclude<PackageSizeTier, "">, DimensionPreset>>
   >
 > = {
   document: {
-    small: { length: 25, width: 18, height: 2, weight: 0.2 },
-    medium: { length: 30, width: 22, height: 5, weight: 0.5 },
+    small: { length: 25, width: 18, height: 2 },
+    medium: { length: 30, width: 22, height: 5 },
   },
   medicine: {
-    small: { length: 15, width: 10, height: 5, weight: 0.3 },
-    medium: { length: 25, width: 20, height: 12, weight: 1.5 },
+    small: { length: 15, width: 10, height: 5 },
+    medium: { length: 25, width: 20, height: 12 },
   },
   food: {
-    small: { length: 25, width: 25, height: 10, weight: 0.8 },
-    medium: { length: 35, width: 30, height: 20, weight: 2 },
+    small: { length: 25, width: 25, height: 10 },
+    medium: { length: 35, width: 30, height: 20 },
   },
   other: {
-    medium: { length: 35, width: 30, height: 25, weight: 3 },
+    medium: { length: 35, width: 30, height: 25 },
   },
 };
 
@@ -200,11 +199,7 @@ export function isPackageSizeTierAllowed(
 }
 
 export function requiresPackageWeight(data: DeliveryFormData): boolean {
-  if (!data.packageSizeTier) return false;
-  if (data.packageSizeTier === "medium" || data.packageSizeTier === "large") {
-    return true;
-  }
-  return data.packageType === "other";
+  return data.packageSizeTier === "large";
 }
 
 export function requiresPackageDimensions(data: DeliveryFormData): boolean {
@@ -213,17 +208,58 @@ export function requiresPackageDimensions(data: DeliveryFormData): boolean {
   return false;
 }
 
-export function getSizePreset(data: DeliveryFormData): SizePreset | null {
+export function getDimensionPreset(data: DeliveryFormData): DimensionPreset | null {
   if (!data.packageType || !data.packageSizeTier) return null;
   if (data.packageSizeTier === "large") return null;
-  return SIZE_PRESETS[data.packageType]?.[data.packageSizeTier] ?? null;
+  return DIMENSION_PRESETS[data.packageType]?.[data.packageSizeTier] ?? null;
 }
 
-export function getEffectiveSizePreset(data: DeliveryFormData): SizePreset | null {
+export function getEffectiveDimensionPreset(
+  data: DeliveryFormData,
+): DimensionPreset | null {
   if (data.length.trim() && data.width.trim() && data.height.trim()) {
     return null;
   }
-  return getSizePreset(data);
+  return getDimensionPreset(data);
+}
+
+/** Weight used for pricing/API when the user leaves the field empty (tier max for small/medium). */
+export function resolvePackageWeightKg(data: DeliveryFormData): number {
+  const parsed = Number.parseFloat(data.weight);
+  if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+
+  if (data.packageSizeTier === "small") return SMALL_PACKAGE_MAX_WEIGHT_KG;
+  if (data.packageSizeTier === "medium") return MEDIUM_PACKAGE_MAX_WEIGHT_KG;
+  return 0;
+}
+
+export function resolvePackageDimensions(data: DeliveryFormData): {
+  lengthCm: number | null;
+  widthCm: number | null;
+  heightCm: number | null;
+} {
+  const length = Number.parseFloat(data.length);
+  const width = Number.parseFloat(data.width);
+  const height = Number.parseFloat(data.height);
+  if (
+    !Number.isNaN(length) &&
+    !Number.isNaN(width) &&
+    !Number.isNaN(height) &&
+    length > 0 &&
+    width > 0 &&
+    height > 0
+  ) {
+    return { lengthCm: length, widthCm: width, heightCm: height };
+  }
+  const preset = getEffectiveDimensionPreset(data);
+  if (preset) {
+    return {
+      lengthCm: preset.length,
+      widthCm: preset.width,
+      heightCm: preset.height,
+    };
+  }
+  return { lengthCm: null, widthCm: null, heightCm: null };
 }
 
 export function requiresPackageDescription(data: DeliveryFormData): boolean {
@@ -265,6 +301,14 @@ export function getPackageSizeHelperText(data: DeliveryFormData): string {
   return "Heavy or bulky items need exact size and weight so the driver can pick them up safely.";
 }
 
+export function weightKgToPackageSizeTier(
+  weightKg: number,
+): Exclude<PackageSizeTier, ""> {
+  if (weightKg <= SMALL_PACKAGE_MAX_WEIGHT_KG) return "small";
+  if (weightKg <= MEDIUM_PACKAGE_MAX_WEIGHT_KG) return "medium";
+  return "large";
+}
+
 export function getPackageWeightTierError(
   tier: PackageSizeTier,
   weightKg: number,
@@ -274,6 +318,12 @@ export function getPackageWeightTierError(
   }
   if (tier === "medium" && weightKg > MEDIUM_PACKAGE_MAX_WEIGHT_KG) {
     return `Over ${MEDIUM_PACKAGE_MAX_WEIGHT_KG} kg — choose Large / heavy.`;
+  }
+  if (tier === "medium" && weightKg <= SMALL_PACKAGE_MAX_WEIGHT_KG) {
+    return `Up to ${SMALL_PACKAGE_MAX_WEIGHT_KG} kg — choose Small, or leave weight blank.`;
+  }
+  if (tier === "large" && weightKg <= MEDIUM_PACKAGE_MAX_WEIGHT_KG) {
+    return `Over ${MEDIUM_PACKAGE_MAX_WEIGHT_KG} kg required for Large / heavy.`;
   }
   return undefined;
 }
@@ -300,9 +350,9 @@ export function validatePackageFields(
   } else if (data.packagePhotos.length > MAX_PACKAGE_PHOTOS) {
     errors.packagePhotos = `You can upload up to ${MAX_PACKAGE_PHOTOS} package photos.`;
   } else if (
-    data.packagePhotos.some((photo) => !photo.objectKey || photo.pendingFile)
+    data.packagePhotos.some((photo) => !photo.pendingFile && !photo.objectKey)
   ) {
-    errors.packagePhotos = "Wait for photos to finish uploading.";
+    errors.packagePhotos = "A package photo is invalid. Remove it and add again.";
   }
   if (!data.packageSizeTier) {
     errors.packageSizeTier = "Select a package size.";
@@ -466,7 +516,7 @@ export function formatDimensions(data: DeliveryFormData): string {
   if (data.length && data.width && data.height) {
     return `${data.length} × ${data.width} × ${data.height} cm`;
   }
-  const preset = getEffectiveSizePreset(data);
+  const preset = getEffectiveDimensionPreset(data);
   if (preset) {
     return `${preset.length} × ${preset.width} × ${preset.height} cm (estimated)`;
   }
@@ -478,8 +528,11 @@ export function formatWeight(data: DeliveryFormData | string): string {
     return data ? `${data} kg` : "Not provided";
   }
   if (data.weight.trim()) return `${data.weight} kg`;
-  const preset = getEffectiveSizePreset(data);
-  if (preset) return `${preset.weight} kg (estimated)`;
+  if (data.packageSizeTier === "large") return "Not provided";
+  const resolved = resolvePackageWeightKg(data);
+  if (resolved > 0) {
+    return `${resolved} kg (estimated)`;
+  }
   return "Not provided";
 }
 

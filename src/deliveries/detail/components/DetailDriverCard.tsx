@@ -128,7 +128,9 @@ export default function DetailDriverCard({ delivery }: DetailDriverCardProps) {
     return null;
   }
 
-  const devPreview = delivery.driver ? null : resolveDevPreviewDriver(delivery.status);
+  const devPreview = delivery.driver
+    ? null
+    : resolveDevPreviewDriver(delivery.status, delivery.providerCode);
   const driver = delivery.driver ?? devPreview;
 
   if (!driver) {

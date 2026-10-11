@@ -11,9 +11,10 @@ type DeliveryTrackingProps = {
 };
 
 export default function DeliveryTracking({ deliveryId }: DeliveryTrackingProps) {
-  const { delivery, loading, error, refresh } = useDeliveryHistory(deliveryId, {
-    pollWhenActive: true,
-  });
+  const { delivery, loading, error, refresh, applyDevSimulateAdvance } =
+    useDeliveryHistory(deliveryId, {
+      pollWhenActive: true,
+    });
 
   if (loading) {
     return (
@@ -37,5 +38,11 @@ export default function DeliveryTracking({ deliveryId }: DeliveryTrackingProps) 
     );
   }
 
-  return <TrackingPage delivery={delivery} onRefresh={refresh} />;
+  return (
+    <TrackingPage
+      delivery={delivery}
+      onRefresh={refresh}
+      onDevSimulateAdvance={applyDevSimulateAdvance}
+    />
+  );
 }
