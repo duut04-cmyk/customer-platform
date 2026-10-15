@@ -65,6 +65,7 @@ export async function uploadPackagePhotoFile(
       message: "Could not upload package photo to storage.",
       code: "INTERNAL_ERROR",
       status: 500,
+      details: uploadBody,
     });
   }
 

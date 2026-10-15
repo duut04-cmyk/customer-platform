@@ -293,6 +293,9 @@ export default function CreateDelivery() {
         return createAndOrchestrate(body, idempotencyKey);
       })();
       findingRunPromisesRef.current.set(runId, runPromise);
+      void runPromise.catch(() => {
+        // Orchestration/upload errors are handled by the waiter below.
+      });
       void runPromise.finally(() => {
         findingRunPromisesRef.current.delete(runId);
       });

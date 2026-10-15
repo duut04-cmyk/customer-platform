@@ -2,10 +2,13 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  attachGlobalGoogleSignInHost,
+  detachGlobalGoogleSignInHostToPark,
+  ensureGoogleIdentityInitialized,
   getGoogleClientIdFromEnv,
-  initializeGoogleIdentity,
   loadGoogleIdentityScript,
   resetGoogleIdentityForTests,
+  subscribeGoogleCredential,
 } from "./google-identity";
 
 describe("google-identity", () => {
@@ -42,7 +45,7 @@ describe("google-identity", () => {
     expect(document.querySelector("script")).toBeNull();
   });
 
-  it("initializes GIS once and forwards credentials to the handler", async () => {
+  it("initializes GIS once and forwards credentials to subscribers", async () => {
     const initialize = vi.fn();
     const onCredential = vi.fn();
 
@@ -57,10 +60,10 @@ describe("google-identity", () => {
       },
     };
 
-    await initializeGoogleIdentity({
-      clientId: "client-id-123",
-      onCredential,
-    });
+    subscribeGoogleCredential(onCredential);
+
+    await ensureGoogleIdentityInitialized("client-id-123");
+    await ensureGoogleIdentityInitialized("client-id-123");
 
     expect(initialize).toHaveBeenCalledOnce();
     const config = initialize.mock.calls[0]?.[0];
@@ -68,5 +71,38 @@ describe("google-identity", () => {
 
     config?.callback({ credential: " google-id-token " });
     expect(onCredential).toHaveBeenCalledWith("google-id-token");
+  });
+
+  it("reuses one global GIS host when attaching and detaching overlays", async () => {
+    const renderButton = vi.fn((parent: HTMLElement) => {
+      const iframe = document.createElement("iframe");
+      iframe.title = "Google Sign-In";
+      parent.appendChild(iframe);
+    });
+    window.google = {
+      accounts: {
+        id: {
+          initialize: vi.fn(),
+          renderButton,
+          prompt: vi.fn(),
+          disableAutoSelect: vi.fn(),
+        },
+      },
+    };
+
+    const overlay = document.createElement("div");
+    document.body.appendChild(overlay);
+
+    await attachGlobalGoogleSignInHost(overlay, 360, "client-id-123");
+    const iframeAfterFirstAttach = overlay.querySelector("iframe");
+
+    detachGlobalGoogleSignInHostToPark();
+    expect(overlay.querySelector("iframe")).toBeNull();
+
+    await attachGlobalGoogleSignInHost(overlay, 360, "client-id-123");
+    expect(overlay.querySelector("iframe")).toBe(iframeAfterFirstAttach);
+    expect(renderButton).toHaveBeenCalledOnce();
+
+    overlay.remove();
   });
 });
