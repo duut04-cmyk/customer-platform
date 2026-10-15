@@ -7,9 +7,6 @@ export const DASHBOARD_CONTENT =
 
 export const DASHBOARD_MAIN = `${DASHBOARD_CONTENT} py-4 lg:py-6`;
 
-/** Legacy alias — pages use full width inside shell */
-export const DASHBOARD_SHELL = DASHBOARD_CONTENT;
-
 /** Dashboard / deliveries: main column + sidebar cards (xl+ only) */
 export const DASHBOARD_TWO_COL_GRID =
   "min-w-0 w-full max-w-full xl:grid-cols-[minmax(0,1fr)_320px]";

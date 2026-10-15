@@ -6,6 +6,7 @@ import {
   PACKAGE_PHOTO_MAX_BYTES,
   type AllowedPackagePhotoMimeType,
 } from "@/server/object-storage/constants";
+import { formatPackagePhotoUploadError } from "@/server/object-storage/format-package-photo-upload-error";
 import { putPackagePhotoToR2 } from "@/server/object-storage/put-package-photo";
 import { isR2Configured } from "@/server/object-storage/r2-env";
 
@@ -121,16 +122,18 @@ export async function POST(request: Request) {
       body: buffer,
     });
     return NextResponse.json({ success: true, data });
-  } catch {
+  } catch (error) {
+    const formatted = formatPackagePhotoUploadError(error);
+    console.error("[package-photos/upload]", formatted.log);
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: "INTERNAL_ERROR",
-          message: "Could not upload package photo to storage.",
+          code: formatted.code,
+          message: formatted.message,
         },
       },
-      { status: 500 },
+      { status: formatted.status },
     );
   }
 }

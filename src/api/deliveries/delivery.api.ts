@@ -20,8 +20,6 @@ import type {
   ListDeliveriesQuery,
   PaginatedDeliveriesDto,
   SubmitDeliveryExperienceBody,
-  SubmitFeedbackBody,
-  SubmitRatingBody,
   TrackingPointDto,
 } from "./delivery.types";
 
@@ -192,13 +190,6 @@ function finalizeOrchestrationResult(
   return Promise.resolve(assertBookableOrchestrationResult(normalized));
 }
 
-/** @deprecated Prefer waitForOrchestrationResult — kept for tests/callers. */
-export async function fetchCompletedOrchestration(
-  deliveryId: string,
-): Promise<CustomerOrchestrationResultDto | null> {
-  return readOrchestrationSnapshot(deliveryId);
-}
-
 /**
  * POST orchestrate once; if the response is lost or orchestration is still running, poll GET
  * until OPTION_READY (no duplicate POST spam).
@@ -262,66 +253,11 @@ export async function getTracking(id: string) {
   >(DELIVERY_ENDPOINTS.tracking(id));
 }
 
-export async function generatePickupOtp(id: string) {
-  return apiClient.post<
-    ApiSuccess<{ deliveryId: string; type: "PICKUP"; expiresAt: string }>
-  >(DELIVERY_ENDPOINTS.pickupOtp(id));
-}
-
-export async function verifyPickupOtp(id: string, otp: string) {
-  return apiClient.post<ApiSuccess<{ deliveryId: string; status: "PICKED_UP" }>>(
-    DELIVERY_ENDPOINTS.verifyPickupOtp(id),
-    { otp },
-  );
-}
-
-export async function generateDeliveryOtp(id: string) {
-  return apiClient.post<
-    ApiSuccess<{ deliveryId: string; type: "DELIVERY"; expiresAt: string }>
-  >(DELIVERY_ENDPOINTS.deliveryOtp(id));
-}
-
-export async function verifyDeliveryOtp(id: string, otp: string) {
-  return apiClient.post<ApiSuccess<{ deliveryId: string; status: "DELIVERED" }>>(
-    DELIVERY_ENDPOINTS.verifyDeliveryOtp(id),
-    { otp },
-  );
-}
-
-export async function submitRating(id: string, body: SubmitRatingBody) {
-  return apiClient.post(DELIVERY_ENDPOINTS.rating(id), body);
-}
-
 export async function submitDeliveryExperience(
   id: string,
   body: SubmitDeliveryExperienceBody,
 ) {
   return apiClient.post(DELIVERY_ENDPOINTS.experience(id), body);
-}
-
-export async function getRating(id: string) {
-  return apiClient.get<
-    ApiSuccess<{
-      driverRating: number;
-      deliveryRating: number;
-      submittedAt: string;
-    }>
-  >(DELIVERY_ENDPOINTS.rating(id));
-}
-
-export async function submitFeedback(id: string, body: SubmitFeedbackBody) {
-  return apiClient.post(DELIVERY_ENDPOINTS.feedback(id), body);
-}
-
-export async function getFeedback(id: string) {
-  return apiClient.get<
-    ApiSuccess<{
-      positiveTags: string[];
-      issueTags: string[];
-      comment: string | null;
-      submittedAt: string;
-    }>
-  >(DELIVERY_ENDPOINTS.feedback(id));
 }
 
 export async function advanceDevDeliveryStep(id: string) {

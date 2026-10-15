@@ -1,14 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { completeGoogleLogin } from "@/auth/complete-google-login";
 import { getAuthErrorMessage } from "@/auth/auth-errors";
 import {
+  attachGlobalGoogleSignInHost,
+  detachGlobalGoogleSignInHostToPark,
   getGoogleClientIdFromEnv,
-  initializeGoogleIdentity,
-  renderGoogleSignInButton,
+  subscribeGoogleCredential,
 } from "@/auth/google-identity";
 import { GoogleIcon, LoadingSpinner } from "./icons";
 
@@ -31,7 +32,6 @@ export default function GoogleButton({
   const [sdkReady, setSdkReady] = useState(false);
   const [sdkError, setSdkError] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
-  const [googlePromptPending, setGooglePromptPending] = useState(false);
   const clientId = getGoogleClientIdFromEnv();
 
   const handleCredential = useCallback(
@@ -40,7 +40,6 @@ export default function GoogleButton({
 
       signingInRef.current = true;
       setSigningIn(true);
-      setGooglePromptPending(false);
       try {
         await completeGoogleLogin(credential, router, redirectTo, onAuthSuccess);
         toast.success("Signed in successfully.");
@@ -54,27 +53,39 @@ export default function GoogleButton({
     [onAuthSuccess, redirectTo, router],
   );
 
-  const canUseGoogle = Boolean(clientId) && !disabled;
+  const handleCredentialRef = useRef(handleCredential);
 
   useEffect(() => {
+    handleCredentialRef.current = handleCredential;
+  }, [handleCredential]);
+
+  useEffect(() => {
+    return subscribeGoogleCredential((credential) => {
+      void handleCredentialRef.current(credential);
+    });
+  }, []);
+
+  const canUseGoogle = Boolean(clientId) && !disabled;
+
+  useLayoutEffect(() => {
     if (!canUseGoogle || !clientId) {
       return;
     }
 
     let cancelled = false;
+
     const container = overlayRef.current;
+    if (!container) {
+      return;
+    }
 
-    initializeGoogleIdentity({
+    void attachGlobalGoogleSignInHost(
+      container,
+      Math.max(container.offsetWidth, 320),
       clientId,
-      onCredential: (credential) => {
-        void handleCredential(credential);
-      },
-    })
+    )
       .then(() => {
-        if (cancelled || !overlayRef.current) return;
-
-        const width = overlayRef.current.offsetWidth || 400;
-        renderGoogleSignInButton(overlayRef.current, { width });
+        if (cancelled) return;
         setSdkReady(true);
         setSdkError(false);
       })
@@ -82,39 +93,24 @@ export default function GoogleButton({
         if (!cancelled) {
           setSdkReady(false);
           setSdkError(true);
-          overlayRef.current?.replaceChildren();
         }
       });
 
     return () => {
       cancelled = true;
-      container?.replaceChildren();
+      detachGlobalGoogleSignInHostToPark();
       setSdkReady(false);
       setSdkError(false);
     };
-  }, [canUseGoogle, clientId, handleCredential]);
+  }, [canUseGoogle, clientId]);
 
   const isLoadingSdk = canUseGoogle && !sdkReady && !sdkError;
-  const isBusy = disabled || signingIn || isLoadingSdk || googlePromptPending;
+  const isBusy = disabled || signingIn || isLoadingSdk;
   const showGoogleOverlay = canUseGoogle && sdkReady && !sdkError;
 
   useEffect(() => {
     onBusyChange?.(isBusy);
   }, [isBusy, onBusyChange]);
-
-  useEffect(() => {
-    const resetPromptIfIdle = () => {
-      if (googlePromptPending && !signingInRef.current) {
-        window.setTimeout(() => {
-          if (!signingInRef.current) {
-            setGooglePromptPending(false);
-          }
-        }, 400);
-      }
-    };
-    window.addEventListener("focus", resetPromptIfIdle);
-    return () => window.removeEventListener("focus", resetPromptIfIdle);
-  }, [googlePromptPending]);
 
   const handleFallbackClick = () => {
     if (isBusy || showGoogleOverlay) return;
@@ -129,17 +125,15 @@ export default function GoogleButton({
     toast.error("Google sign-in failed to load. Refresh and try again.");
   };
 
-  const handleGoogleOverlayPointerDown = () => {
-    if (showGoogleOverlay && !signingInRef.current) {
-      setGooglePromptPending(true);
-    }
-  };
-
   return (
     <div className="relative h-11 w-full sm:h-12">
       <div
-        className="flex h-11 w-full items-center justify-center gap-2.5 rounded-[6px] border border-border bg-background text-small font-medium text-foreground sm:h-12 sm:text-body"
-        aria-hidden
+        className={
+          showGoogleOverlay
+            ? "pointer-events-none flex h-11 w-full items-center justify-center gap-2.5 rounded-[6px] border border-border bg-background text-small font-medium text-foreground sm:h-12 sm:text-body"
+            : "flex h-11 w-full items-center justify-center gap-2.5 rounded-[6px] border border-border bg-background text-small font-medium text-foreground sm:h-12 sm:text-body"
+        }
+        aria-hidden={showGoogleOverlay}
       >
         {signingIn || isLoadingSdk ? (
           <>
@@ -156,10 +150,9 @@ export default function GoogleButton({
 
       <div
         ref={overlayRef}
-        onPointerDownCapture={handleGoogleOverlayPointerDown}
         className={
           showGoogleOverlay
-            ? "absolute inset-0 overflow-hidden opacity-[0.011] [&_div]:!h-full [&_iframe]:!h-full [&_iframe]:!w-full"
+            ? "absolute inset-0 z-[1] cursor-pointer overflow-hidden opacity-[0.011] [&_div]:!h-full [&_iframe]:!h-full [&_iframe]:!w-full"
             : "pointer-events-none absolute inset-0"
         }
         aria-label="Continue with Google"
@@ -168,10 +161,10 @@ export default function GoogleButton({
       {!showGoogleOverlay ? (
         <button
           type="button"
-          className="absolute inset-0 cursor-pointer rounded-[6px] disabled:cursor-not-allowed"
+          className="absolute inset-0 z-[1] cursor-pointer rounded-[6px] disabled:cursor-not-allowed"
           onClick={handleFallbackClick}
           disabled={isBusy}
-          aria-busy={signingIn}
+          aria-busy={signingIn || isLoadingSdk}
           aria-label="Continue with Google"
         />
       ) : null}
