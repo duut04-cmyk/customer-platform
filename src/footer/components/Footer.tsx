@@ -1,98 +1,149 @@
 import Link from "next/link";
+import Button from "@/common/components/Button";
 import Logo from "@/common/components/Logo";
-import {
-  SocialFacebookIcon,
-  SocialInstagramIcon,
-  SocialLinkedInIcon,
-  SocialTwitterIcon,
-} from "@/home/components/icons";
+import { HELP_SUPPORT_PATH } from "@/help/paths";
+import { SAFETY_COMPLIANCE_PATH } from "@/safety/paths";
 
-const footerLinks = {
-  Product: [
-    { label: "How it works", href: "#how-it-works" },
-    { label: "Deliveries", href: "#get-started" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "For businesses", href: "#for-businesses" },
-  ],
-  Company: [
-    { label: "About us", href: "#about" },
-    { label: "Careers", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Press", href: "#" },
-  ],
-  Support: [
-    { label: "Help center", href: "#" },
-    { label: "Contact us", href: "#" },
-    { label: "FAQs", href: "#" },
-  ],
-  Legal: [
-    { label: "Privacy policy", href: "#" },
-    { label: "Terms of service", href: "#" },
-    { label: "Cookie policy", href: "#" },
-  ],
-};
-
-const socialLinks = [
-  { label: "Facebook", href: "#", Icon: SocialFacebookIcon },
-  { label: "Twitter", href: "#", Icon: SocialTwitterIcon },
-  { label: "LinkedIn", href: "#", Icon: SocialLinkedInIcon },
-  { label: "Instagram", href: "#", Icon: SocialInstagramIcon },
-];
+function ArrowRightIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3 8h10M9 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 const linkClassName =
-  "text-small text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30";
+  "text-small text-muted-foreground transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30";
 
-export default function Footer() {
+const headingClassName =
+  "mb-4 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-foreground";
+
+type FooterProps = {
+  onLogin?: () => void;
+  onGetStarted?: () => void;
+};
+
+export default function Footer({ onLogin, onGetStarted }: FooterProps) {
   return (
-    <footer className="overflow-x-hidden border-t border-border bg-background">
-      <div className="site-content pt-10 pb-4 sm:pt-12 sm:pb-4 md:pt-12 md:pb-5 lg:pt-14 lg:pb-5">
-        <div className="grid w-full items-start gap-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 md:grid-cols-4 md:gap-x-6 md:gap-y-8 lg:grid-cols-6 lg:gap-x-6 lg:gap-y-0 xl:grid-cols-5 xl:gap-x-10">
-          <div className="space-y-4 sm:col-span-2 md:col-span-4 lg:col-span-2 xl:col-span-1 xl:space-y-5">
+    <footer className="overflow-x-hidden border-t border-border bg-[#FFFBF5]">
+      <div className="site-content py-12 sm:py-14 md:py-16">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          {/* Brand */}
+          <div className="space-y-4 sm:col-span-2 lg:col-span-1">
             <Link
               href="/"
               className="inline-block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
             >
               <Logo className="text-2xl" />
             </Link>
-            <p className="max-w-sm text-small leading-relaxed text-muted-foreground lg:max-w-none lg:text-caption lg:leading-snug xl:text-small xl:leading-relaxed">
-              Best delivery options with transparent pricing — we find the right way to
-              get your items delivered.
+            <p className="max-w-xs text-small leading-relaxed text-muted-foreground">
+              Making inner-city deliveries simpler for individuals and local businesses.
             </p>
-            <div className="flex flex-nowrap gap-2 sm:gap-3 lg:gap-2">
-              {socialLinks.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 sm:h-10 sm:w-10 lg:h-9 lg:w-9"
-                >
-                  <Icon />
-                </a>
-              ))}
-            </div>
+            <span className="inline-flex items-center rounded-pill bg-surface-accent px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-accent">
+              Inner-city delivery
+            </span>
           </div>
 
-          {Object.entries(footerLinks).map(([group, links]) => (
-            <div key={group} className="min-w-0">
-              <h3 className="mb-3 text-body font-semibold text-foreground sm:mb-3 lg:mb-2.5 lg:text-small xl:mb-3 xl:text-body">
-                {group}
-              </h3>
-              <ul className="space-y-2 sm:space-y-2.5 lg:space-y-2">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    <a href={link.href} className={linkClassName}>
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Product */}
+          <div>
+            <h3 className={headingClassName}>
+              <span className="inline-block border-b-2 border-accent/50 pb-1">
+                Product
+              </span>
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/#how-it-works" className={linkClassName}>
+                  How it works
+                </Link>
+              </li>
+              <li>
+                <Link href="/#for-individuals" className={linkClassName}>
+                  For individuals
+                </Link>
+              </li>
+              <li>
+                <Link href="/#for-businesses" className={linkClassName}>
+                  For businesses
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h3 className={headingClassName}>
+              <span className="inline-block border-b-2 border-accent/50 pb-1">
+                Support
+              </span>
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href={HELP_SUPPORT_PATH} className={linkClassName}>
+                  Help
+                </Link>
+              </li>
+              <li>
+                <Link href={SAFETY_COMPLIANCE_PATH} className={linkClassName}>
+                  Safety &amp; compliance
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Account — single place for auth actions */}
+          <div>
+            <h3 className={headingClassName}>
+              <span className="inline-block border-b-2 border-accent/50 pb-1">
+                Account
+              </span>
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                {onLogin ? (
+                  <button type="button" onClick={onLogin} className={linkClassName}>
+                    Log in
+                  </button>
+                ) : (
+                  <Link href="/?auth=login" className={linkClassName}>
+                    Log in
+                  </Link>
+                )}
+              </li>
+              <li className="pt-1">
+                {onGetStarted ? (
+                  <Button
+                    className="h-10 gap-1.5 px-5 text-small font-semibold"
+                    onClick={onGetStarted}
+                  >
+                    Get started
+                    <ArrowRightIcon />
+                  </Button>
+                ) : (
+                  <Link href="/?auth=signup">
+                    <Button className="h-10 gap-1.5 px-5 text-small font-semibold">
+                      Get started
+                      <ArrowRightIcon />
+                    </Button>
+                  </Link>
+                )}
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div className="mt-6 border-t border-border/60 pt-3 text-center sm:mt-6 sm:pt-3 lg:mt-8">
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
           <p className="text-caption text-muted-foreground">
-            &copy; 2026 Doot. All rights reserved.
+            &copy; {new Date().getFullYear()} Doot. All rights reserved.
+          </p>
+          <p className="text-caption text-muted-foreground/80">
+            Built for local deliveries
           </p>
         </div>
       </div>

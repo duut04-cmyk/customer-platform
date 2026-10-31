@@ -158,10 +158,6 @@ function buildRows(
     emptyValue: "Not specified",
   };
 
-  if (currentStep === "package") {
-    return [categoryRow, pickupRow, dropoffRow, packageDetailsRow];
-  }
-
   if (currentStep === "pickup") {
     return [pickupRow, dropoffRow, packageDetailsRow, timingRow];
   }

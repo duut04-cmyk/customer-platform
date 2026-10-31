@@ -22,7 +22,7 @@ export default function StepNavigation({
         <Button
           type="button"
           variant="secondary"
-          className="h-10 rounded-[8px] px-5 text-small font-semibold sm:mr-auto sm:w-auto"
+          className="h-10 rounded-[6px] px-5 text-small font-semibold sm:mr-auto sm:w-auto"
           onClick={onBack}
         >
           Back
@@ -30,7 +30,7 @@ export default function StepNavigation({
       ) : null}
       <Button
         type="button"
-        className="h-11 gap-2 rounded-[8px] px-6 text-small font-semibold disabled:opacity-50"
+        className="h-11 gap-2 rounded-[6px] px-6 text-small font-semibold shadow-[0_6px_16px_-6px_rgba(255,107,10,0.4)] disabled:opacity-50"
         onClick={onContinue}
         disabled={continueDisabled}
       >

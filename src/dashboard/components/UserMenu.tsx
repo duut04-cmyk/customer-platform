@@ -7,7 +7,7 @@ import { ACCOUNT_SETTINGS_PATH } from "@/account/paths";
 import { performLogout } from "@/auth/logout";
 import { getUserInitials } from "@/auth/user-display";
 import Button from "@/common/components/Button";
-import { HELP_SUPPORT_PATH } from "@/help/paths";
+import { HELP_SUPPORT_APP_PATH } from "@/help/paths";
 import { useAuthStore } from "@/stores/auth.store";
 
 function UserChevron({ open }: { open: boolean }) {
@@ -142,13 +142,13 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
                 type="button"
                 role="menuitem"
                 className={`w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-small font-medium transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 ${
-                  pathname === HELP_SUPPORT_PATH
+                  pathname === HELP_SUPPORT_APP_PATH
                     ? "bg-surface text-foreground"
                     : "text-foreground"
                 }`}
                 onClick={() => {
                   setOpen(false);
-                  router.push(HELP_SUPPORT_PATH);
+                  router.push(HELP_SUPPORT_APP_PATH);
                 }}
               >
                 Help & support

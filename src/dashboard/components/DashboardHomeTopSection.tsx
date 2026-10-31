@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
+import { useAuthStore } from "@/stores/auth.store";
 import {
   AuthenticatedDesktopActions,
   AuthenticatedMobilePageHeader,
@@ -9,9 +10,26 @@ import { DashboardMobileSearchFallback } from "./DashboardMobileToolbar";
 import DashboardSearch from "./DashboardSearch";
 import { IconWave } from "./icons";
 
+function getTimeGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function firstNameFrom(fullName: string | undefined): string {
+  const trimmed = fullName?.trim();
+  if (!trimmed) return "there";
+  return trimmed.split(/\s+/)[0] ?? "there";
+}
+
 function GreetingBlock({ compact = false }: { compact?: boolean }) {
+  const user = useAuthStore((state) => state.user);
+  const greeting = useMemo(() => getTimeGreeting(), []);
+  const firstName = firstNameFrom(user?.name);
+
   return (
-    <div className={compact ? undefined : "space-y-0.5 sm:space-y-1"}>
+    <div className={compact ? undefined : "space-y-1"}>
       <h1
         className={`font-bold tracking-tight text-foreground ${
           compact
@@ -22,14 +40,14 @@ function GreetingBlock({ compact = false }: { compact?: boolean }) {
         {compact ? (
           <>
             <span className="flex items-center gap-1.5">
-              Good morning,
+              {greeting},
               <IconWave className="h-6 w-6 shrink-0" />
             </span>
-            John
+            {firstName}
           </>
         ) : (
           <>
-            Good morning, John
+            {greeting}, {firstName}
             <IconWave className="h-5 w-5 shrink-0 sm:h-6 sm:w-6" />
           </>
         )}

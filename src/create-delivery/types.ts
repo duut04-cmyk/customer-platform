@@ -3,6 +3,7 @@ import type { DeliveryPricing } from "@/deliveries/pricing";
 export type FormStep =
   | "pickup"
   | "package"
+  /** @deprecated Merged into package — kept for draft restore mapping */
   | "requirements"
   | "consent"
   | "review"
@@ -11,7 +12,7 @@ export type FormStep =
   | "booking"
   | "confirmed";
 
-export type ProgressStep = "pickup" | "package" | "requirements" | "consent" | "review";
+export type ProgressStep = "pickup" | "package" | "consent" | "review";
 
 export type PackageType =
   "parcel" | "document" | "box" | "other" | "food" | "medicine" | "";
@@ -385,7 +386,9 @@ export function validatePackageFields(
 }
 
 export function isPackageStepComplete(data: DeliveryFormData): boolean {
-  return Object.keys(validatePackageFields(data)).length === 0;
+  if (Object.keys(validatePackageFields(data)).length > 0) return false;
+  if (data.timing && data.timing !== "asap") return false;
+  return true;
 }
 
 export const TIMING_LABELS: Record<Exclude<Timing, "">, string> = {
@@ -399,6 +402,15 @@ export const REQUIREMENT_OPTIONS = [
   { id: "keep-upright", label: "Keep upright" },
   { id: "none", label: "No special requirements" },
 ] as const;
+
+export function formatRequirements(requirements: string[]): string {
+  if (requirements.length === 0 || requirements.includes("none")) {
+    return "No special requirements";
+  }
+  return requirements
+    .map((id) => REQUIREMENT_OPTIONS.find((o) => o.id === id)?.label ?? id)
+    .join(", ");
+}
 
 export function formatScheduledAt(iso: string): string {
   if (!iso) return "—";

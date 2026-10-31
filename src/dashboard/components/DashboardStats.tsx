@@ -92,7 +92,7 @@ function DashboardStatsGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2.5 md:portrait:grid-cols-4 md:portrait:gap-2 lg:landscape:grid-cols-4 lg:landscape:gap-2 xl:grid-cols-4 xl:gap-4">
+    <div className="grid grid-cols-2 gap-2.5 md:portrait:grid-cols-4 md:portrait:gap-2.5 lg:landscape:grid-cols-4 lg:landscape:gap-2.5 xl:grid-cols-4 xl:gap-4">
       {statCards.map((card) => {
         const Icon = card.icon;
         const value = counts[card.key];
@@ -101,11 +101,11 @@ function DashboardStatsGrid({
         return (
           <div
             key={card.key}
-            className="rounded-xl border border-border bg-background p-3 shadow-sm md:portrait:p-2.5 lg:landscape:p-2.5 xl:p-4"
+            className="relative overflow-hidden rounded-[10px] border border-border bg-white p-3 shadow-[0_8px_24px_-16px_rgba(23,23,23,0.14)] md:portrait:p-3 lg:landscape:p-3 xl:p-4"
           >
-            <div className="flex flex-col gap-2 md:portrait:gap-1.5 lg:landscape:gap-1.5">
+            <div className="flex items-start gap-3">
               <div
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full md:portrait:h-8 md:portrait:w-8 lg:landscape:h-8 lg:landscape:w-8 xl:h-10 xl:w-10 ${card.iconBg}`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] md:portrait:h-8 md:portrait:w-8 lg:landscape:h-8 lg:landscape:w-8 xl:h-10 xl:w-10 ${card.iconBg}`}
               >
                 <Icon className="h-4 w-4 md:portrait:h-3.5 md:portrait:w-3.5 lg:landscape:h-3.5 lg:landscape:w-3.5 xl:h-5 xl:w-5" />
               </div>
@@ -118,7 +118,7 @@ function DashboardStatsGrid({
                     {tabletLabel}
                   </span>
                 </p>
-                <p className="mt-0.5 text-subheading font-bold leading-none tracking-tight text-foreground md:portrait:text-body-lg lg:landscape:text-body-lg xl:mt-2 xl:text-heading">
+                <p className="mt-1 text-subheading font-bold leading-none tracking-tight text-foreground md:portrait:text-body-lg lg:landscape:text-body-lg xl:text-heading">
                   {value}
                 </p>
               </div>
