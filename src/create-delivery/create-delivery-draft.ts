@@ -5,17 +5,32 @@ const DRAFT_STORAGE_KEY = "doot:create-delivery:draft:v1";
 
 type StoredDraft = {
   version: 1;
-  step: ProgressStep;
+  step: ProgressStep | "requirements";
   data: DeliveryFormData;
 };
 
-const progressSteps: ProgressStep[] = [
-  "pickup",
-  "package",
-  "requirements",
-  "consent",
-  "review",
-];
+const progressSteps: ProgressStep[] = ["pickup", "package", "consent", "review"];
+
+function normalizeAsapTiming(data: DeliveryFormData): DeliveryFormData {
+  return {
+    ...data,
+    timing: "asap",
+    scheduledAt: "",
+    scheduledDate: "",
+    pickupWindowStart: "",
+    pickupWindowEnd: "",
+  };
+}
+
+function mapDraftStep(step: string): ProgressStep | null {
+  if (step === "requirements") {
+    return "package";
+  }
+  if (progressSteps.includes(step as ProgressStep)) {
+    return step as ProgressStep;
+  }
+  return null;
+}
 
 function isProgressStep(step: FormStep): step is ProgressStep {
   return progressSteps.includes(step as ProgressStep);
@@ -23,7 +38,7 @@ function isProgressStep(step: FormStep): step is ProgressStep {
 
 function sanitizeFormForStorage(data: DeliveryFormData): DeliveryFormData {
   return {
-    ...data,
+    ...normalizeAsapTiming(data),
     packagePhotos: [],
     packagePhotoUrls: [],
   };
@@ -56,18 +71,19 @@ export function loadCreateDeliveryDraft(): {
     const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredDraft;
-    if (parsed.version !== 1 || !isProgressStep(parsed.step) || !parsed.data) {
+    const step = mapDraftStep(parsed.step);
+    if (parsed.version !== 1 || !step || !parsed.data) {
       return null;
     }
     return {
-      step: parsed.step,
-      data: {
+      step,
+      data: normalizeAsapTiming({
         ...initialDeliveryFormData,
         ...parsed.data,
         packagePhotos: [],
         packagePhotoUrls: [],
         photoUploadBatchId: parsed.data.photoUploadBatchId || crypto.randomUUID(),
-      },
+      }),
     };
   } catch {
     return null;

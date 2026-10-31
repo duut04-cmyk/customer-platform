@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IconArrowRight } from "@/dashboard/components/icons";
-import { HELP_SUPPORT_PATH } from "@/help/paths";
+import { HELP_SUPPORT_APP_PATH } from "@/help/paths";
 
 function IconMessage({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -33,7 +33,7 @@ export default function DetailNeedHelpCard() {
             For any changes or issues with this delivery, contact our support team.
           </p>
           <Link
-            href={HELP_SUPPORT_PATH}
+            href={HELP_SUPPORT_APP_PATH}
             className="mt-4 inline-flex items-center gap-1.5 text-small font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
           >
             Contact support

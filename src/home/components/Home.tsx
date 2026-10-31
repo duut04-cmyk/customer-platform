@@ -5,12 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import Footer from "@/footer";
 import Header from "@/header";
 import { AuthModal, type AuthMode } from "@/auth";
+import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
 import { useAuthStore } from "@/stores/auth.store";
+import AudienceSection from "./AudienceSection";
 import CTA from "./CTA";
-import Difference from "./Difference";
 import Hero from "./Hero";
 import HowItWorks from "./HowItWorks";
-import WhyDutt from "./WhyDutt";
 
 function resolveAuthMode(value: string | null): AuthMode | null {
   if (value === "login" || value === "signup") {
@@ -24,7 +24,7 @@ export default function HomePage() {
   const searchParams = useSearchParams();
   const urlAuth = resolveAuthMode(searchParams.get("auth"));
   const [manualMode, setManualMode] = useState<AuthMode | null>(null);
-  const redirectTo = searchParams.get("next") ?? "/dashboard";
+  const redirectTo = searchParams.get("next") ?? CREATE_DELIVERY_PATH;
 
   const authMode = urlAuth ?? manualMode;
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -52,13 +52,12 @@ export default function HomePage() {
     <>
       <Header onLogin={openLogin} onGetStarted={openSignup} />
       <main className="overflow-x-hidden bg-hero-surface">
-        <Hero onCreateDelivery={openSignup} />
+        <Hero onGetStarted={openSignup} />
         <HowItWorks />
-        <WhyDutt />
-        <Difference />
-        <CTA onCreateDelivery={openSignup} />
+        <AudienceSection onGetStarted={openSignup} />
+        <CTA onGetStarted={openSignup} />
       </main>
-      <Footer />
+      <Footer onLogin={openLogin} onGetStarted={openSignup} />
       <AuthModal
         mode={authMode}
         onClose={closeAuth}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { IconArrowRight } from "@/dashboard/components/icons";
 import { getUserInitials } from "@/auth/user-display";
-import { HELP_SUPPORT_PATH } from "@/help/paths";
+import { HELP_SUPPORT_APP_PATH } from "@/help/paths";
 import { useAuthStore } from "@/stores/auth.store";
 
 export default function AccountSummaryCard() {
@@ -25,7 +25,7 @@ export default function AccountSummaryCard() {
 
       <div className="mt-5 border-t border-border pt-4">
         <Link
-          href={HELP_SUPPORT_PATH}
+          href={HELP_SUPPORT_APP_PATH}
           className="inline-flex items-center gap-1.5 text-small font-semibold text-accent hover:text-accent/80"
         >
           Help &amp; support

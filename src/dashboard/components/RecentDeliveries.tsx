@@ -12,8 +12,11 @@ import { getFilterCounts, searchDeliveries } from "@/utils/dashboardStats";
 import { filterDeliveries } from "@/deliveries/filters";
 import type { Delivery, DeliveryFilter } from "@/deliveries/types";
 import DeliveryCard from "./DeliveryCard";
+import ListPagination from "./ListPagination";
 import RecentDeliveriesSkeleton from "./RecentDeliveriesSkeleton";
 import { IconChevronRight } from "./icons";
+
+const PAGE_SIZE = 10;
 
 const filterOptions: { id: DeliveryFilter; label: string; mobileLabel?: string }[] = [
   { id: "all", label: "All" },
@@ -42,6 +45,12 @@ function RecentDeliveriesContent({
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
   const [filter, setFilter] = useState<DeliveryFilter>("all");
+  const listKey = `${filter}|${searchQuery}|${datePeriod}`;
+  const [pagination, setPagination] = useState({ key: listKey, page: 1 });
+  const page = pagination.key === listKey ? pagination.page : 1;
+  const setPage = (nextPage: number) => {
+    setPagination({ key: listKey, page: nextPage });
+  };
 
   const dateFiltered = useMemo(
     () => filterByDatePeriod(apiDeliveries, datePeriod),
@@ -50,21 +59,28 @@ function RecentDeliveriesContent({
 
   const filterCounts = useMemo(() => getFilterCounts(dateFiltered), [dateFiltered]);
 
-  const deliveries = useMemo(() => {
+  const filteredDeliveries = useMemo(() => {
     let list = dateFiltered;
     list = filterDeliveries(list, filter);
     list = searchDeliveries(list, searchQuery);
-    return list.slice(0, 10);
+    return list;
   }, [dateFiltered, filter, searchQuery]);
 
-  const isEmpty = deliveries.length === 0;
+  const total = filteredDeliveries.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageDeliveries = filteredDeliveries.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+  const isEmpty = total === 0;
 
   if (loading && apiDeliveries.length === 0) {
     return <RecentDeliveriesSkeleton />;
   }
 
   return (
-    <section className="min-w-0 rounded-xl border border-border bg-background shadow-sm">
+    <section className="min-w-0 overflow-hidden rounded-[10px] border border-border bg-white shadow-[0_8px_24px_-16px_rgba(23,23,23,0.14)]">
       {error && (
         <p className="border-b border-border px-4 py-3 text-small text-red-600 sm:px-5">
           {error}
@@ -72,7 +88,12 @@ function RecentDeliveriesContent({
       )}
       <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
         <div>
-          <h2 className="text-body-lg font-bold text-foreground">Recent deliveries</h2>
+          <p className="text-[0.625rem] font-bold uppercase tracking-[0.14em] text-accent">
+            Activity
+          </p>
+          <h2 className="mt-0.5 text-body-lg font-bold tracking-tight text-foreground">
+            Recent deliveries
+          </h2>
           <p className="mt-0.5 text-small text-muted-foreground">
             Track your latest deliveries and their status.
           </p>
@@ -80,7 +101,7 @@ function RecentDeliveriesContent({
         <Link href="/deliveries" className="sm:shrink-0">
           <Button
             variant="secondary"
-            className="h-10 w-full gap-1.5 rounded-[10px] px-4 text-small font-semibold sm:h-9 sm:w-auto"
+            className="h-10 w-full gap-1.5 rounded-[6px] px-4 text-small font-semibold sm:h-9 sm:w-auto"
           >
             View all deliveries
             <IconChevronRight className="h-4 w-4" />
@@ -116,7 +137,7 @@ function RecentDeliveriesContent({
 
       <div className="max-w-full overflow-x-auto px-4 pb-3 sm:px-5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
         <div
-          className="mb-2.5 flex min-w-0 gap-2"
+          className="mb-0.5 flex min-w-0 gap-2"
           role="tablist"
           aria-label="Filter recent deliveries"
         >
@@ -131,10 +152,10 @@ function RecentDeliveriesContent({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => setFilter(option.id)}
-                className={`min-h-9 shrink-0 cursor-pointer rounded-[5px] border px-3 py-1.5 text-small font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`min-h-9 shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-small font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   selected
-                    ? "border-accent bg-accent text-white"
-                    : "border-slate-200 bg-background text-muted-foreground hover:border-foreground/20 hover:text-foreground"
+                    ? "border-accent bg-[#fff7ed] font-semibold text-accent"
+                    : "border-border bg-[#FFFBF5] text-muted-foreground hover:border-foreground/20 hover:text-foreground"
                 }`}
               >
                 <span className="sm:hidden">
@@ -150,7 +171,7 @@ function RecentDeliveriesContent({
       </div>
 
       {isEmpty ? (
-        <div className="flex min-h-56 flex-col items-center justify-center border-t border-border px-4 py-12 text-center sm:min-h-[240px] sm:px-5">
+        <div className="flex min-h-56 flex-col items-center justify-center border-t border-border bg-[#FFFBF5]/40 px-4 py-12 text-center sm:min-h-[240px] sm:px-5">
           <p className="text-body font-medium text-foreground">
             {searchQuery
               ? "No deliveries match your search."
@@ -165,7 +186,7 @@ function RecentDeliveriesContent({
           )}
           {!searchQuery && filter === "all" && (
             <Button
-              className="mt-5 h-10 gap-2 rounded-[10px] px-5 text-small font-semibold"
+              className="mt-5 h-10 gap-2 rounded-[6px] px-5 text-small font-semibold"
               onClick={() => router.push(CREATE_DELIVERY_PATH)}
             >
               <span aria-hidden="true">+</span>
@@ -174,13 +195,21 @@ function RecentDeliveriesContent({
           )}
         </div>
       ) : (
-        <ul className="divide-y divide-border border-t border-border">
-          {deliveries.map((delivery) => (
-            <li key={delivery.id}>
-              <DeliveryCard delivery={delivery} variant="row" />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-border border-t border-border">
+            {pageDeliveries.map((delivery) => (
+              <li key={delivery.id}>
+                <DeliveryCard delivery={delivery} variant="row" />
+              </li>
+            ))}
+          </ul>
+          <ListPagination
+            page={currentPage}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </section>
   );

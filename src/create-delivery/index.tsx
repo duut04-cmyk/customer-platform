@@ -32,9 +32,6 @@ import FindingDeliverySummaryCard from "./components/FindingDeliverySummaryCard"
 import FindingTimeSlotCard from "./components/FindingTimeSlotCard";
 import PackageStep, { validatePackageStep } from "./components/PackageStep";
 import PickupDropStep, { validatePickupStep } from "./components/PickupDropStep";
-import RequirementsStep, {
-  validateRequirementsStep,
-} from "./components/RequirementsStep";
 import ReviewStep from "./components/ReviewStep";
 import StepNavigation from "./components/StepNavigation";
 import YourDeliverySummaryCard from "./components/YourDeliverySummaryCard";
@@ -61,18 +58,11 @@ import {
   validatePackageFields,
 } from "./types";
 
-const stepOrder: ProgressStep[] = [
-  "pickup",
-  "package",
-  "requirements",
-  "consent",
-  "review",
-];
+const stepOrder: ProgressStep[] = ["pickup", "package", "consent", "review"];
 
 const continueLabels: Record<ProgressStep, string> = {
   pickup: "Continue to package",
-  package: "Continue to timing",
-  requirements: "Continue to consent",
+  package: "Continue to consent",
   consent: "Continue to review",
   review: "Continue",
 };
@@ -358,7 +348,6 @@ export default function CreateDelivery() {
   const validateCurrentStep = useCallback(() => {
     if (step === "pickup") return validatePickupStep(data);
     if (step === "package") return validatePackageStep(data);
-    if (step === "requirements") return validateRequirementsStep(data);
     if (step === "consent") return validateConsentStep(data);
     return {};
   }, [step, data]);
@@ -481,11 +470,7 @@ export default function CreateDelivery() {
   };
 
   const showProgress = isProgressStep(step);
-  const showStepNav =
-    step === "pickup" ||
-    step === "package" ||
-    step === "requirements" ||
-    step === "consent";
+  const showStepNav = step === "pickup" || step === "package" || step === "consent";
   const showFormLayout = !isPostReviewStep(step);
   const showCreateDeliveryTopSection =
     showFormLayout ||
@@ -496,7 +481,7 @@ export default function CreateDelivery() {
 
   const handleEditStep = (nextStep: FormStep, focus?: "pickup" | "dropoff") => {
     setPickupFocus(focus ?? null);
-    setStep(nextStep);
+    setStep(nextStep === "requirements" ? "package" : nextStep);
   };
 
   const continueDisabled = (() => {
@@ -505,16 +490,6 @@ export default function CreateDelivery() {
     }
     if (step === "package") {
       return !isPackageStepComplete(data);
-    }
-    if (step === "requirements") {
-      if (!data.timing) return true;
-      if (data.timing === "scheduled") {
-        if (!data.scheduledDate || !data.pickupWindowStart || !data.pickupWindowEnd) {
-          return true;
-        }
-        if (data.pickupWindowEnd <= data.pickupWindowStart) return true;
-      }
-      return false;
     }
     if (step === "consent") {
       return !hasComplianceConsent(data);
@@ -535,9 +510,6 @@ export default function CreateDelivery() {
       )}
       {step === "package" && (
         <PackageStep data={data} errors={errors} onChange={updateData} />
-      )}
-      {step === "requirements" && (
-        <RequirementsStep data={data} errors={errors} onChange={updateData} />
       )}
       {step === "consent" && (
         <ConsentStep data={data} errors={errors} onChange={updateData} />
@@ -582,7 +554,13 @@ export default function CreateDelivery() {
                   <DeliveryProgress current={step} />
                 </div>
               ) : null}
-              <div className="min-w-0 rounded-xl border border-border bg-background p-4 shadow-sm sm:p-5 md:p-6 xl:col-start-1 xl:row-start-2">
+              <div
+                className={`min-w-0 overflow-visible border border-border p-4 shadow-sm sm:p-5 md:p-6 xl:col-start-1 xl:row-start-2 ${
+                  step === "pickup" || step === "package"
+                    ? "rounded-[12px] bg-[#FFFBF5]/60"
+                    : "rounded-xl bg-background"
+                }`}
+              >
                 {stepContent}
                 {showStepNav && (
                   <StepNavigation
