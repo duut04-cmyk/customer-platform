@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { CREATE_DELIVERY_PATH } from "@/create-delivery/paths";
-import { SAFETY_COMPLIANCE_PATH } from "@/safety/paths";
+import { SAFETY_COMPLIANCE_APP_PATH, SAFETY_COMPLIANCE_PATH } from "@/safety/paths";
+
+type HelpGettingStartedProps = {
+  /** When true, keep users inside the dashboard shell. */
+  embedded?: boolean;
+};
 
 const steps = [
   {
@@ -23,7 +28,9 @@ const steps = [
   },
 ] as const;
 
-export default function HelpGettingStarted() {
+export default function HelpGettingStarted({
+  embedded = false,
+}: HelpGettingStartedProps) {
   return (
     <section className="overflow-hidden rounded-[1.25rem] border border-border bg-white p-5 shadow-sm md:p-7">
       <h2 className="text-body-lg font-bold text-foreground md:text-[1.35rem]">
@@ -59,7 +66,7 @@ export default function HelpGettingStarted() {
           Create a delivery
         </Link>
         <Link
-          href={SAFETY_COMPLIANCE_PATH}
+          href={embedded ? SAFETY_COMPLIANCE_APP_PATH : SAFETY_COMPLIANCE_PATH}
           className="inline-flex h-10 items-center rounded-pill border border-border bg-white px-5 text-small font-semibold text-foreground transition-colors hover:bg-surface"
         >
           Safety &amp; compliance

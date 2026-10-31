@@ -35,7 +35,7 @@ export default function FindingDelivery({
           {isScheduled ? "When should we deliver?" : "Finding the best delivery option"}
         </h2>
 
-        <FindingTimeSlotBanner data={data} onEdit={() => onEdit("requirements")} />
+        <FindingTimeSlotBanner data={data} onEdit={() => onEdit("package")} />
 
         <FindingProvidersList onAllChecked={handleAllChecked} slotLabel={slotLabel} />
       </div>

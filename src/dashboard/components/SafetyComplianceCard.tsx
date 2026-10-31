@@ -1,21 +1,27 @@
 import Link from "next/link";
-import { SAFETY_COMPLIANCE_PATH } from "@/safety/paths";
+import { SAFETY_COMPLIANCE_APP_PATH } from "@/safety/paths";
 import { IconArrowRight, IconShieldFilled } from "./icons";
 
 type SafetyComplianceCardProps = {
   variant?: "default" | "create";
   className?: string;
+  /**
+   * Override destination. Defaults to the in-app route (sidebar) for dashboard
+   * surfaces; pass the public path from marketing pages.
+   */
+  href?: string;
 };
 
 export default function SafetyComplianceCard({
   variant = "default",
   className = "",
+  href = SAFETY_COMPLIANCE_APP_PATH,
 }: SafetyComplianceCardProps) {
   const isCreate = variant === "create";
 
   return (
     <section
-      className={`min-w-0 w-full max-w-full rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/60 p-3.5 sm:p-4 lg:landscape:p-5 xl:p-5 ${className}`}
+      className={`min-w-0 w-full max-w-full rounded-[10px] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/60 p-3.5 shadow-[0_8px_24px_-16px_rgba(23,23,23,0.12)] sm:p-4 lg:landscape:p-5 xl:p-5 ${className}`}
     >
       <div className="flex items-start gap-2.5 sm:gap-3">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 sm:h-9 sm:w-9">
@@ -33,7 +39,7 @@ export default function SafetyComplianceCard({
               : "Doot bookings must comply with applicable rules and prohibited-items policies. You are responsible for accurate declarations and safe packaging."}
           </p>
           <Link
-            href={SAFETY_COMPLIANCE_PATH}
+            href={href}
             className="mt-3 inline-flex cursor-pointer items-center gap-1.5 text-caption font-semibold text-emerald-700 transition-colors hover:text-emerald-800 sm:mt-4 sm:text-small"
           >
             Learn more

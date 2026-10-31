@@ -105,7 +105,7 @@ export default function PackagePhotoUpload({
         {photos.map((photo, index) => (
           <div
             key={photo.id}
-            className="group relative h-28 overflow-hidden rounded-xl border border-border bg-white shadow-sm"
+            className="group relative h-28 overflow-hidden rounded-[6px] border border-border bg-white shadow-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -133,7 +133,7 @@ export default function PackagePhotoUpload({
                 type="button"
                 disabled={!uploadBatchId}
                 onClick={() => inputRef.current?.click()}
-                className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-white px-2 py-2 text-center shadow-sm transition-colors hover:border-foreground/25 hover:bg-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-[6px] border border-dashed border-border bg-[#FFFBF5] px-2 py-2 text-center shadow-sm transition-colors hover:border-accent/40 hover:bg-[#FFF8F1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <IconCamera
                   className={`h-5 w-5 ${isFirstSlot ? "text-blue-600" : "text-muted-foreground/60"}`}

@@ -5,7 +5,7 @@ function Pulse({ className = "" }: { className?: string }) {
 export default function RecentDeliveriesSkeleton() {
   return (
     <section
-      className="min-w-0 rounded-xl border border-border bg-background shadow-sm"
+      className="min-w-0 overflow-hidden rounded-[10px] border border-border bg-white shadow-[0_8px_24px_-16px_rgba(23,23,23,0.14)]"
       aria-busy="true"
       aria-label="Loading recent deliveries"
     >

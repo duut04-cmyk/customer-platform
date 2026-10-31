@@ -3,18 +3,11 @@ import type { ProgressStep } from "../types";
 const steps: { id: ProgressStep; label: string; number: string }[] = [
   { id: "pickup", number: "01", label: "Pickup & drop" },
   { id: "package", number: "02", label: "Package" },
-  { id: "requirements", number: "03", label: "Timing" },
-  { id: "consent", number: "04", label: "Consent" },
-  { id: "review", number: "05", label: "Review" },
+  { id: "consent", number: "03", label: "Consent" },
+  { id: "review", number: "04", label: "Review" },
 ];
 
-const stepOrder: ProgressStep[] = [
-  "pickup",
-  "package",
-  "requirements",
-  "consent",
-  "review",
-];
+const stepOrder: ProgressStep[] = ["pickup", "package", "consent", "review"];
 
 type DeliveryProgressProps = {
   current: ProgressStep;
@@ -57,9 +50,9 @@ export default function DeliveryProgress({ current }: DeliveryProgressProps) {
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-caption font-bold transition-colors ${
                     isCurrent
-                      ? "bg-accent text-white"
+                      ? "bg-accent text-white shadow-[0_4px_12px_-4px_rgba(255,107,10,0.55)] ring-4 ring-accent/15"
                       : isComplete
-                        ? "bg-foreground text-background"
+                        ? "bg-[#0B1F3A] text-white"
                         : "border-2 border-border bg-white text-muted-foreground"
                   }`}
                 >

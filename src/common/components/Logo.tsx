@@ -8,6 +8,8 @@ type LogoProps = {
    * from `md` up, show mark + wordmark.
    */
   compactOnMobile?: boolean;
+  /** White wordmark for dark backgrounds (mark stays orange). */
+  onDark?: boolean;
 };
 
 function DootMark({ className = "" }: { className?: string }) {
@@ -32,6 +34,7 @@ export default function Logo({
   showAccent = false,
   markOnly = false,
   compactOnMobile = false,
+  onDark = false,
 }: LogoProps) {
   const wordmarkHidden = markOnly
     ? "hidden"
@@ -41,7 +44,7 @@ export default function Logo({
 
   return (
     <span
-      className={`inline-flex items-center gap-[0.4em] text-foreground ${className}`}
+      className={`inline-flex items-center gap-[0.4em] ${onDark ? "text-white" : "text-foreground"} ${className}`}
       aria-label="Doot"
     >
       <DootMark className="h-[1.05em] w-[1.05em] shrink-0" />
