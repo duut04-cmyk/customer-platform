@@ -29,8 +29,8 @@ export default function SafetyComplianceCard({
             className={`mt-1.5 break-words leading-relaxed text-muted-foreground sm:mt-2 ${isCreate ? "text-caption sm:text-small" : "text-small"}`}
           >
             {isCreate
-              ? "We follow Indian laws and do not allow illegal items. You are responsible for accurate declarations and safe packaging."
-              : "All deliveries follow Indian transport and logistics regulations. You are responsible for accurate declarations, safe packaging, and compliance with prohibited-items rules."}
+              ? "We do not allow illegal or prohibited items. You are responsible for accurate declarations and safe packaging."
+              : "Doot bookings must comply with applicable rules and prohibited-items policies. You are responsible for accurate declarations and safe packaging."}
           </p>
           <Link
             href={SAFETY_COMPLIANCE_PATH}
